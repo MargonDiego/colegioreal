@@ -1,0 +1,33 @@
+/* globals.css */
+:root {
+    --mui-text-primary: #1A1A1A; /* Color de texto primario en modo claro */
+    --mui-text-primary-dark: #F0F0F0; /* Color de texto primario en modo oscuro */
+    --mui-background-default: #E0E0E3; /* Fondo en modo claro */
+    --mui-background-default-dark: #1C1C1E; /* Fondo en modo oscuro */
+}
+
+/* Estilos Globales */
+body {
+    color: var(--mui-text-primary);
+    background: var(--mui-background-default);
+}
+
+/* Oscuro */
+@media (prefers-color-scheme: dark) {
+    body {
+        color: var(--mui-text-primary-dark);
+        background: var(--mui-background-default-dark);
+    }
+}
+
+/* Reset de Estilos */
+* {
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}

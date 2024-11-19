@@ -1,0 +1,45 @@
+/* page.module.css */
+.page {
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  align-items: center;
+  justify-items: center;
+  min-height: 100vh;
+  padding: 32px;
+  gap: 24px;
+  font-family: var(--font-geist-sans, Arial, Helvetica, sans-serif);
+  background-color: var(--mui-background-default, #f0f0f3);
+}
+
+@media (prefers-color-scheme: dark) {
+  .page {
+    background-color: var(--mui-background-default-dark, #1c1c1e);
+  }
+}
+
+.ctas a {
+  appearance: none;
+  border-radius: 12px;
+  padding: 12px 24px;
+  border: 1px solid transparent;
+  transition: all 0.2s ease-in-out;
+  cursor: pointer;
+}
+
+a.primary {
+  background-color: var(--mui-primary-main, #0d47a1);
+  color: var(--mui-primary-contrastText, #ffffff);
+}
+
+a.primary:hover {
+  background-color: var(--mui-primary-dark, #002171);
+}
+
+a.secondary {
+  border-color: var(--mui-divider, #444444);
+  color: var(--mui-text-primary, #333333);
+}
+
+a.secondary:hover {
+  background-color: var(--mui-background-paper, #e0e0e3);
+}
