@@ -1,4 +1,3 @@
-// components/dashboard/DashboardSidebar.js
 'use client';
 
 import React from 'react';
@@ -50,9 +49,25 @@ export default function DashboardSidebar() {
     };
 
     const drawerContent = (
-        <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column', backgroundColor: theme.palette.background.paper }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', padding: theme.spacing(2) , mt:10  }}>
-                <Typography variant="h6" color="text.primary">
+        <Box
+            sx={{
+                height: '100%',
+                display: 'flex',
+                flexDirection: 'column',
+                backgroundColor: theme.palette.background.paper,
+                boxShadow: isMobile ? theme.shadows[4] : 'none',
+            }}
+        >
+            <Box
+                sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    padding: theme.spacing(2),
+                    mt: isMobile ? 2 : 10,
+                }}
+            >
+                <Typography variant="h6" color="text.primary" noWrap sx={{ fontWeight: 'bold' }}>
                     Sistema de Gestión
                 </Typography>
                 {isMobile && (
@@ -82,11 +97,16 @@ export default function DashboardSidebar() {
                                 '&:hover': {
                                     backgroundColor: theme.palette.action.hover,
                                 },
+                                transition: 'background-color 0.3s',
+                                borderRadius: theme.spacing(1),
+                                mx: theme.spacing(1),
+                                my: theme.spacing(0.5),
                             }}
                         >
                             <ListItemIcon
                                 sx={{
                                     color: isSelected ? theme.palette.primary.main : theme.palette.text.secondary,
+                                    minWidth: 40,
                                 }}
                             >
                                 <IconComponent />

@@ -41,26 +41,8 @@ const commonComponents = {
             root: {
                 borderRadius: '16px',
                 padding: '20px',
-                backgroundColor: 'inherit',
-            },
-        },
-    },
-    MuiTable: {
-        styleOverrides: {
-            root: {
-                backgroundColor: 'inherit',
-                color: 'inherit',
-            },
-        },
-    },
-    MuiTableHead: {
-        styleOverrides: {
-            root: {
-                backgroundColor: 'inherit',
-                '& .MuiTableCell-root': {
-                    color: 'inherit',
-                    fontWeight: 600,
-                },
+                // Cambiar a un color sólido para evitar la transparencia
+                backgroundColor: '#FFFFFF',
             },
         },
     },
@@ -69,15 +51,40 @@ const commonComponents = {
             root: {
                 '& .MuiOutlinedInput-root': {
                     borderRadius: '12px',
-                    backgroundColor: 'inherit',
+                    backgroundColor: '#FFFFFF', // Fondo blanco para los campos de texto
                     '& fieldset': {
-                        borderColor: 'inherit',
+                        borderColor: '#CCCCCC', // Color del borde
+                    },
+                    '&:hover fieldset': {
+                        borderColor: '#4A90E2', // Color del borde en hover
+                    },
+                    '&.Mui-focused fieldset': {
+                        borderColor: '#4A90E2', // Color del borde cuando está enfocado
                     },
                 },
             },
         },
     },
+    MuiMenu: {
+        styleOverrides: {
+            paper: {
+                backgroundColor: '#FFFFFF', // Fondo blanco para el menú desplegable
+                boxShadow: '0px 4px 10px rgba(0, 0, 0, 0.1)', // Sombra para mejor visibilidad
+                borderRadius: '8px', // Borde redondeado para el menú
+            },
+        },
+    },
+    MuiMenuItem: {
+        styleOverrides: {
+            root: {
+                '&:hover': {
+                    backgroundColor: '#F0F4F8', // Fondo en hover
+                },
+            },
+        },
+    },
 };
+
 
 const lightTheme = createTheme({
     palette: { mode: 'light', ...lightPalette },

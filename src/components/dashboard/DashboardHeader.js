@@ -1,4 +1,3 @@
-// components/dashboard/DashboardHeader.js
 'use client';
 
 import {
@@ -13,7 +12,6 @@ import {
     Tooltip,
     Badge,
     useTheme,
-    Paper,
     ListItemIcon,
 } from '@mui/material';
 import {
@@ -63,23 +61,45 @@ export default function DashboardHeader({ onSidebarToggle }) {
                 boxShadow: theme.shadows[4],
             }}
         >
-            <Toolbar sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <IconButton color="inherit" edge="start" onClick={onSidebarToggle} sx={{ mr: 2 }}>
+            <Toolbar sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', px: 2 }}>
+                <IconButton
+                    color="inherit"
+                    edge="start"
+                    onClick={onSidebarToggle}
+                    sx={{
+                        mr: 2,
+                        '&:hover': { backgroundColor: theme.palette.action.hover },
+                        transition: 'all 0.3s',
+                    }}
+                >
                     <MenuIcon />
                 </IconButton>
-                <Typography variant="h6" color="inherit">
+                <Typography variant="h6" color="inherit" noWrap sx={{ fontWeight: 'bold', flexGrow: 1 }}>
                     Sistema de Intervenciones
                 </Typography>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                     <Tooltip title="Notificaciones">
-                        <IconButton color="inherit" sx={{ transition: 'all 0.3s' }}>
+                        <IconButton
+                            color="inherit"
+                            sx={{
+                                transition: 'all 0.3s',
+                                '&:hover': { color: theme.palette.info.main },
+                            }}
+                        >
                             <Badge badgeContent={4} color="error">
                                 <Notifications />
                             </Badge>
                         </IconButton>
                     </Tooltip>
                     <Tooltip title="Cuenta">
-                        <IconButton onClick={handleMenu} color="inherit" sx={{ transition: 'all 0.3s' }}>
+                        <IconButton
+                            onClick={handleMenu}
+                            color="inherit"
+                            sx={{
+                                transition: 'all 0.3s',
+                                '&:hover': { transform: 'scale(1.1)', backgroundColor: theme.palette.action.hover },
+                            }}
+                        >
                             <Avatar sx={{ bgcolor: theme.palette.secondary.main }}>
                                 {user?.firstName?.charAt(0) || <AccountCircle />}
                             </Avatar>

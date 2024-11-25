@@ -1,6 +1,6 @@
 'use client';
 
-import { Container, Typography, Box, Link as MuiLink, useTheme, alpha } from '@mui/material';
+import { Typography, Box, Link as MuiLink, useTheme, alpha } from '@mui/material';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import ProtectedResource from '@/components/auth/ProtectedResource';
@@ -10,21 +10,46 @@ export default function StudentsLayout({ children }) {
     const theme = useTheme();
 
     return (
-        <Container maxWidth="xl">
-            <Box sx={{ py: 3, borderBottom: `2px solid ${theme.palette.divider}` }}>
-                <Typography variant="h4" sx={{ fontWeight: 'bold', mb: 2 }}>
+        <Box
+            sx={{
+                flexGrow: 1,
+                p: 3,
+                display: 'flex',
+                flexDirection: 'column',
+                backgroundColor: theme.palette.background.paper,
+                borderRadius: 2,
+                boxShadow: theme.shadows[1],
+                mt:8,
+            }}
+        >
+            <Box
+                sx={{
+                    pb: 3,
+                    borderBottom: `2px solid ${theme.palette.divider}`,
+                    mb: 3,
+                }}
+            >
+                <Typography
+                    variant="h4"
+                    sx={{
+                        fontWeight: 'bold',
+                        mb: 1,
+                        color: theme.palette.text.primary,
+                    }}
+                >
                     Gestión de Estudiantes
                 </Typography>
                 <Box
                     sx={{
                         display: 'flex',
-                        gap: 3,
+                        gap: 2,
                         mt: 2,
                         '& a': {
                             textDecoration: 'none',
                             padding: '8px 16px',
-                            borderRadius: '8px',
+                            borderRadius: theme.shape.borderRadius,
                             transition: 'all 0.3s ease',
+                            fontWeight: 500,
                         },
                         '& a:hover': {
                             backgroundColor: alpha(theme.palette.primary.main, 0.1),
@@ -35,9 +60,12 @@ export default function StudentsLayout({ children }) {
                         component={Link}
                         href="/students"
                         sx={{
-                            color: pathname === '/students' ? theme.palette.primary.main : theme.palette.text.primary,
+                            color: pathname === '/students' ? theme.palette.primary.main : theme.palette.text.secondary,
                             fontWeight: pathname === '/students' ? 'bold' : 'normal',
-                            borderBottom: pathname === '/students' ? `2px solid ${theme.palette.primary.main}` : 'none',
+                            borderBottom: pathname === '/students' ? `3px solid ${theme.palette.primary.main}` : 'none',
+                            '&:hover': {
+                                color: theme.palette.primary.dark,
+                            },
                         }}
                     >
                         Listado de Estudiantes
@@ -50,11 +78,14 @@ export default function StudentsLayout({ children }) {
                             sx={{
                                 color: pathname.startsWith('/students/register')
                                     ? theme.palette.primary.main
-                                    : theme.palette.text.primary,
+                                    : theme.palette.text.secondary,
                                 fontWeight: pathname.startsWith('/students/register') ? 'bold' : 'normal',
                                 borderBottom: pathname.startsWith('/students/register')
-                                    ? `2px solid ${theme.palette.primary.main}`
+                                    ? `3px solid ${theme.palette.primary.main}`
                                     : 'none',
+                                '&:hover': {
+                                    color: theme.palette.primary.dark,
+                                },
                             }}
                         >
                             Registrar Estudiante
@@ -65,9 +96,14 @@ export default function StudentsLayout({ children }) {
                         component={Link}
                         href="/students/reports"
                         sx={{
-                            color: pathname === '/students/reports' ? theme.palette.primary.main : theme.palette.text.primary,
+                            color: pathname === '/students/reports' ? theme.palette.primary.main : theme.palette.text.secondary,
                             fontWeight: pathname === '/students/reports' ? 'bold' : 'normal',
-                            borderBottom: pathname === '/students/reports' ? `2px solid ${theme.palette.primary.main}` : 'none',
+                            borderBottom: pathname === '/students/reports'
+                                ? `3px solid ${theme.palette.primary.main}`
+                                : 'none',
+                            '&:hover': {
+                                color: theme.palette.primary.dark,
+                            },
                         }}
                     >
                         Reportes
@@ -75,6 +111,6 @@ export default function StudentsLayout({ children }) {
                 </Box>
             </Box>
             <Box sx={{ mt: 3 }}>{children}</Box>
-        </Container>
+        </Box>
     );
 }
