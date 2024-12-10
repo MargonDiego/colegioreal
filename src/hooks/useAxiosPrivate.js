@@ -1,5 +1,5 @@
 // hooks/useAxiosPrivate.js
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import { axiosPrivate } from '@/lib/api/axios'
 import useAuthStore from './useAuth'
 import { useRouter } from 'next/navigation'
@@ -7,7 +7,7 @@ import { useRouter } from 'next/navigation'
 const useAxiosPrivate = () => {
     const router = useRouter()
     const { accessToken, refreshToken, logout } = useAuthStore()
-    let isRefreshing = false // Prevenir múltiples refreshes simultáneos
+    const isRefreshing = useRef(false) // Prevenir múltiples refreshes simultáneos
 
     useEffect(() => {
         const requestIntercept = axiosPrivate.interceptors.request.use(
@@ -29,10 +29,10 @@ const useAxiosPrivate = () => {
                     prevRequest.sent = true
 
                     try {
-                        if (!isRefreshing) {
-                            isRefreshing = true
+                        if (!isRefreshing.current) {
+                            isRefreshing.current = true
                             await useAuthStore.getState().refreshSession()
-                            isRefreshing = false
+                            isRefreshing.current = false
 
                             // Actualizar el token en la solicitud original
                             const newAccessToken = useAuthStore.getState().accessToken
@@ -40,7 +40,7 @@ const useAxiosPrivate = () => {
                             return axiosPrivate(prevRequest)
                         }
                     } catch (refreshError) {
-                        isRefreshing = false
+                        isRefreshing.current = false
                         await logout()
                         router.replace('/login')
                         return Promise.reject(refreshError)
