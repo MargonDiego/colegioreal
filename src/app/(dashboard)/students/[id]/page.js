@@ -143,7 +143,7 @@ export default function StudentDetailPage() {
     const router = useRouter();
     const { id } = useParams();
     const [student, setStudent] = useState(null);
-    const [tabValue, setTabValue] = useState(0);
+    const [tabValue, setTabValue] = React.useState(0);
     const { data, isLoading, isError } = useStudents();
     const { data: interventionsData, isLoading: isLoadingInterventions } = useInterventions({
         filters: {
@@ -152,10 +152,12 @@ export default function StudentDetailPage() {
     });
 
     useEffect(() => {
-        if (!isLoading && data) {
+        if (!isLoading && data?.data) {
             const studentsArray = Array.isArray(data.data) ? data.data : [];
             const studentData = studentsArray.find((item) => item.id === parseInt(id));
-            if (studentData) setStudent(studentData);
+            if (studentData) {
+                setStudent(studentData);
+            }
         }
     }, [data, id, isLoading]);
 
@@ -172,6 +174,10 @@ export default function StudentDetailPage() {
     if (!student) return (
         <Alert severity="warning">Estudiante no encontrado</Alert>
     );
+
+    const handleTabChange = (event, newValue) => {
+        setTabValue(newValue);
+    };
 
     return (
         <Container maxWidth="lg" sx={styles.mainContainer}>
@@ -207,14 +213,14 @@ export default function StudentDetailPage() {
                                         boxShadow: 2
                                     }}
                                 >
-                                    {student.firstName?.[0]}{student.lastName?.[0]}
+                                    {student?.firstName?.[0]}{student?.lastName?.[0]}
                                 </Avatar>
                                 <Typography variant="h5" align="center" gutterBottom fontWeight="medium">
-                                    {student.firstName} {student.lastName}
+                                    {student?.firstName} {student?.lastName}
                                 </Typography>
                                 <Chip
-                                    label={student.enrollmentStatus}
-                                    color={student.enrollmentStatus === 'Regular' ? 'success' : 'warning'}
+                                    label={student?.enrollmentStatus}
+                                    color={student?.enrollmentStatus === 'Regular' ? 'success' : 'warning'}
                                     sx={{ 
                                         mt: 1,
                                         fontWeight: 'medium',
@@ -230,7 +236,7 @@ export default function StudentDetailPage() {
                                     </ListItemIcon>
                                     <ListItemText
                                         primary={<Typography variant="subtitle2">RUT</Typography>}
-                                        secondary={student.rut}
+                                        secondary={student?.rut}
                                     />
                                 </ListItem>
                                 <ListItem>
@@ -239,7 +245,7 @@ export default function StudentDetailPage() {
                                     </ListItemIcon>
                                     <ListItemText
                                         primary={<Typography variant="subtitle2">Email</Typography>}
-                                        secondary={student.email || 'No registrado'}
+                                        secondary={student?.email || 'No registrado'}
                                     />
                                 </ListItem>
                                 <ListItem>
@@ -248,7 +254,7 @@ export default function StudentDetailPage() {
                                     </ListItemIcon>
                                     <ListItemText
                                         primary={<Typography variant="subtitle2">Fecha de Nacimiento</Typography>}
-                                        secondary={new Date(student.birthDate).toLocaleDateString()}
+                                        secondary={student?.birthDate ? new Date(student.birthDate).toLocaleDateString() : 'No registrada'}
                                     />
                                 </ListItem>
                                 <ListItem>
@@ -257,7 +263,7 @@ export default function StudentDetailPage() {
                                     </ListItemIcon>
                                     <ListItemText
                                         primary={<Typography variant="subtitle2">Nacionalidad</Typography>}
-                                        secondary={student.nationality || 'No registrada'}
+                                        secondary={student?.nationality || 'No registrada'}
                                     />
                                 </ListItem>
                             </List>
@@ -270,7 +276,7 @@ export default function StudentDetailPage() {
                     <Paper sx={{ width: '100%', bgcolor: 'background.paper', borderRadius: 2 }} elevation={2}>
                         <Tabs
                             value={tabValue}
-                            onChange={(e, newValue) => setTabValue(newValue)}
+                            onChange={handleTabChange}
                             variant="scrollable"
                             scrollButtons="auto"
                             sx={{
@@ -358,28 +364,28 @@ export default function StudentDetailPage() {
                                                     <ListItemIcon><Class color="primary" /></ListItemIcon>
                                                     <ListItemText 
                                                         primary={<Typography variant="subtitle2">Curso</Typography>}
-                                                        secondary={`${student.grade} ${student.section || ''}`} 
+                                                        secondary={`${student?.grade} ${student?.section || ''}`} 
                                                     />
                                                 </ListItem>
                                                 <ListItem>
                                                     <ListItemIcon><CalendarToday color="primary" /></ListItemIcon>
                                                     <ListItemText 
                                                         primary={<Typography variant="subtitle2">Año Académico</Typography>}
-                                                        secondary={student.academicYear} 
+                                                        secondary={student?.academicYear} 
                                                     />
                                                 </ListItem>
                                                 <ListItem>
                                                     <ListItemIcon><AssignmentInd color="primary" /></ListItemIcon>
                                                     <ListItemText 
                                                         primary={<Typography variant="subtitle2">N° Matrícula</Typography>}
-                                                        secondary={student.matriculaNumber} 
+                                                        secondary={student?.matriculaNumber} 
                                                     />
                                                 </ListItem>
                                                 <ListItem>
                                                     <ListItemIcon><SchoolIcon color="primary" /></ListItemIcon>
                                                     <ListItemText 
                                                         primary={<Typography variant="subtitle2">Colegio Anterior</Typography>}
-                                                        secondary={student.previousSchool || 'No registrado'} 
+                                                        secondary={student?.previousSchool || 'No registrado'} 
                                                     />
                                                 </ListItem>
                                             </List>
@@ -393,7 +399,7 @@ export default function StudentDetailPage() {
                                             <Typography variant="h6" gutterBottom color="primary">
                                                 Asistencia
                                             </Typography>
-                                            {student.attendance ? (
+                                            {student?.attendance ? (
                                                 <Box>
                                                     <Table size="small">
                                                         <TableBody>
@@ -408,7 +414,7 @@ export default function StudentDetailPage() {
                                                                 >
                                                                     Total
                                                                 </TableCell>
-                                                                <TableCell>{student.attendance.total}</TableCell>
+                                                                <TableCell>{student?.attendance.total}</TableCell>
                                                             </TableRow>
                                                             <TableRow>
                                                                 <TableCell 
@@ -420,7 +426,7 @@ export default function StudentDetailPage() {
                                                                 >
                                                                     Asistidos
                                                                 </TableCell>
-                                                                <TableCell>{student.attendance.attended}</TableCell>
+                                                                <TableCell>{student?.attendance.attended}</TableCell>
                                                             </TableRow>
                                                         </TableBody>
                                                     </Table>
@@ -434,7 +440,7 @@ export default function StudentDetailPage() {
                                     </Card>
                                 </Grid>
 
-                                {student.simceResults && (
+                                {student?.simceResults && (
                                     <Grid item xs={12}>
                                         <Card sx={styles.contentCard}>
                                             <CardContent>
@@ -455,7 +461,7 @@ export default function StudentDetailPage() {
                                                                 >
                                                                     Matemáticas
                                                                 </TableCell>
-                                                                <TableCell>{student.simceResults.math}</TableCell>
+                                                                <TableCell>{student?.simceResults.math}</TableCell>
                                                             </TableRow>
                                                             <TableRow>
                                                                 <TableCell 
@@ -467,7 +473,7 @@ export default function StudentDetailPage() {
                                                                 >
                                                                     Lenguaje
                                                                 </TableCell>
-                                                                <TableCell>{student.simceResults.language}</TableCell>
+                                                                <TableCell>{student?.simceResults.language}</TableCell>
                                                             </TableRow>
                                                         </TableBody>
                                                     </Table>
@@ -477,7 +483,7 @@ export default function StudentDetailPage() {
                                     </Grid>
                                 )}
 
-                                {student.academicRecord && (
+                                {student?.academicRecord && (
                                     <Grid item xs={12}>
                                         <Card sx={styles.contentCard}>
                                             <CardContent>
@@ -498,7 +504,7 @@ export default function StudentDetailPage() {
                                                                 >
                                                                     Matemáticas
                                                                 </TableCell>
-                                                                <TableCell>{student.academicRecord.math}</TableCell>
+                                                                <TableCell>{student?.academicRecord.math}</TableCell>
                                                             </TableRow>
                                                             <TableRow>
                                                                 <TableCell 
@@ -510,7 +516,7 @@ export default function StudentDetailPage() {
                                                                 >
                                                                     Lenguaje
                                                                 </TableCell>
-                                                                <TableCell>{student.academicRecord.language}</TableCell>
+                                                                <TableCell>{student?.academicRecord.language}</TableCell>
                                                             </TableRow>
                                                         </TableBody>
                                                     </Table>
@@ -538,7 +544,7 @@ export default function StudentDetailPage() {
                                                     </ListItemIcon>
                                                     <ListItemText 
                                                         primary={<Typography variant="subtitle2">Dirección</Typography>}
-                                                        secondary={student.address || 'No registrada'} 
+                                                        secondary={student?.address || 'No registrada'} 
                                                     />
                                                 </ListItem>
                                                 <ListItem>
@@ -547,7 +553,7 @@ export default function StudentDetailPage() {
                                                     </ListItemIcon>
                                                     <ListItemText 
                                                         primary={<Typography variant="subtitle2">Ubicación</Typography>}
-                                                        secondary={`${student.comuna}, ${student.region}`} 
+                                                        secondary={`${student?.comuna}, ${student?.region}`} 
                                                     />
                                                 </ListItem>
                                             </List>
@@ -561,9 +567,9 @@ export default function StudentDetailPage() {
                                             <Typography variant="h6" gutterBottom color="primary">
                                                 Apoderado Titular
                                             </Typography>
-                                            {student.apoderadoTitular && (
+                                            {student?.apoderadoTitular && (
                                                 <List>
-                                                    {Object.entries(student.apoderadoTitular).map(([key, value]) => (
+                                                    {Object.entries(student?.apoderadoTitular).map(([key, value]) => (
                                                         <ListItem key={key}>
                                                             <ListItemText 
                                                                 primary={<Typography variant="subtitle2">{key.charAt(0).toUpperCase() + key.slice(1)}</Typography>}
@@ -577,7 +583,7 @@ export default function StudentDetailPage() {
                                     </Card>
                                 </Grid>
 
-                                {student.apoderadoSuplente && (
+                                {student?.apoderadoSuplente && (
                                     <Grid item xs={12} md={6}>
                                         <Card sx={styles.contentCard}>
                                             <CardContent>
@@ -585,7 +591,7 @@ export default function StudentDetailPage() {
                                                     Apoderado Suplente
                                                 </Typography>
                                                 <List>
-                                                    {Object.entries(student.apoderadoSuplente).map(([key, value]) => (
+                                                    {Object.entries(student?.apoderadoSuplente).map(([key, value]) => (
                                                         <ListItem key={key}>
                                                             <ListItemText 
                                                                 primary={<Typography variant="subtitle2">{key.charAt(0).toUpperCase() + key.slice(1)}</Typography>}
@@ -599,7 +605,7 @@ export default function StudentDetailPage() {
                                     </Grid>
                                 )}
 
-                                {student.contactosEmergencia && (
+                                {student?.contactosEmergencia && (
                                     <Grid item xs={12}>
                                         <Card sx={styles.contentCard}>
                                             <CardContent>
@@ -607,7 +613,7 @@ export default function StudentDetailPage() {
                                                     Contactos de Emergencia
                                                 </Typography>
                                                 <Grid container spacing={2}>
-                                                    {student.contactosEmergencia.map((contacto, index) => (
+                                                    {student?.contactosEmergencia.map((contacto, index) => (
                                                         <Grid item xs={12} md={4} key={index}>
                                                             <Card variant="outlined">
                                                                 <CardContent>
@@ -631,7 +637,7 @@ export default function StudentDetailPage() {
                                     </Grid>
                                 )}
 
-                                {student.grupoFamiliar && (
+                                {student?.grupoFamiliar && (
                                     <Grid item xs={12}>
                                         <Card sx={styles.contentCard}>
                                             <CardContent>
@@ -639,7 +645,7 @@ export default function StudentDetailPage() {
                                                     Grupo Familiar
                                                 </Typography>
                                                 <Typography variant="body1">
-                                                    {student.grupoFamiliar}
+                                                    {student?.grupoFamiliar}
                                                 </Typography>
                                             </CardContent>
                                         </Card>
@@ -661,13 +667,13 @@ export default function StudentDetailPage() {
                                                 <ListItem>
                                                     <ListItemText 
                                                         primary={<Typography variant="subtitle2">Previsión</Typography>}
-                                                        secondary={student.prevision || 'No registrada'} 
+                                                        secondary={student?.prevision || 'No registrada'} 
                                                     />
                                                 </ListItem>
                                                 <ListItem>
                                                     <ListItemText 
                                                         primary={<Typography variant="subtitle2">Grupo Sanguíneo</Typography>}
-                                                        secondary={student.grupoSanguineo || 'No registrado'} 
+                                                        secondary={student?.grupoSanguineo || 'No registrado'} 
                                                     />
                                                 </ListItem>
                                             </List>
@@ -675,7 +681,7 @@ export default function StudentDetailPage() {
                                     </Card>
                                 </Grid>
 
-                                {student.condicionesMedicas && (
+                                {student?.condicionesMedicas && (
                                     <Grid item xs={12} md={6}>
                                         <Card sx={styles.contentCard}>
                                             <CardContent>
@@ -683,7 +689,7 @@ export default function StudentDetailPage() {
                                                     Condiciones Médicas
                                                 </Typography>
                                                 <List>
-                                                    {student.condicionesMedicas.map((condicion, index) => (
+                                                    {student?.condicionesMedicas.map((condicion, index) => (
                                                         <ListItem key={index}>
                                                             <ListItemText primary={condicion} />
                                                         </ListItem>
@@ -694,7 +700,7 @@ export default function StudentDetailPage() {
                                     </Grid>
                                 )}
 
-                                {student.alergias && (
+                                {student?.alergias && (
                                     <Grid item xs={12} md={6}>
                                         <Card sx={styles.contentCard}>
                                             <CardContent>
@@ -702,7 +708,7 @@ export default function StudentDetailPage() {
                                                     Alergias
                                                 </Typography>
                                                 <List>
-                                                    {student.alergias.map((alergia, index) => (
+                                                    {student?.alergias.map((alergia, index) => (
                                                         <ListItem key={index}>
                                                             <ListItemText primary={alergia} />
                                                         </ListItem>
@@ -713,7 +719,7 @@ export default function StudentDetailPage() {
                                     </Grid>
                                 )}
 
-                                {student.medicamentos && (
+                                {student?.medicamentos && (
                                     <Grid item xs={12} md={6}>
                                         <Card sx={styles.contentCard}>
                                             <CardContent>
@@ -721,7 +727,7 @@ export default function StudentDetailPage() {
                                                     Medicamentos
                                                 </Typography>
                                                 <List>
-                                                    {student.medicamentos.map((medicamento, index) => (
+                                                    {student?.medicamentos.map((medicamento, index) => (
                                                         <ListItem key={index}>
                                                             <ListItemText primary={medicamento} />
                                                         </ListItem>
@@ -737,7 +743,7 @@ export default function StudentDetailPage() {
                         {/* Tab: Necesidades Educativas Especiales */}
                         <TabPanel value={tabValue} index={3}>
                             <Grid container spacing={3}>
-                                {student.diagnosticoPIE && (
+                                {student?.diagnosticoPIE && (
                                     <Grid item xs={12}>
                                         <Card sx={styles.contentCard}>
                                             <CardContent>
@@ -749,7 +755,7 @@ export default function StudentDetailPage() {
                                                         <TableBody>
                                                             <TableRow>
                                                                 <TableCell 
-                                                                    component="th"
+                                                                    component="th" 
                                                                     sx={{ 
                                                                         fontWeight: 'bold',
                                                                         color: 'primary.main',
@@ -758,7 +764,7 @@ export default function StudentDetailPage() {
                                                                 >
                                                                     Diagnóstico
                                                                 </TableCell>
-                                                                <TableCell>{student.diagnosticoPIE.diagnosis}</TableCell>
+                                                                <TableCell>{student?.diagnosticoPIE.diagnosis}</TableCell>
                                                             </TableRow>
                                                         </TableBody>
                                                     </Table>
@@ -768,7 +774,7 @@ export default function StudentDetailPage() {
                                     </Grid>
                                 )}
 
-                                {student.necesidadesEducativas && (
+                                {student?.necesidadesEducativas && (
                                     <Grid item xs={12}>
                                         <Card sx={styles.contentCard}>
                                             <CardContent>
@@ -778,7 +784,7 @@ export default function StudentDetailPage() {
                                                 <Box>
                                                     <Table size="small">
                                                         <TableBody>
-                                                            {Object.entries(student.necesidadesEducativas).map(([key, value]) => (
+                                                            {Object.entries(student?.necesidadesEducativas).map(([key, value]) => (
                                                                 <TableRow key={key}>
                                                                     <TableCell 
                                                                         component="th"
@@ -801,7 +807,7 @@ export default function StudentDetailPage() {
                                     </Grid>
                                 )}
 
-                                {student.apoyosPIE && (
+                                {student?.apoyosPIE && (
                                     <Grid item xs={12}>
                                         <Card sx={styles.contentCard}>
                                             <CardContent>
@@ -811,7 +817,7 @@ export default function StudentDetailPage() {
                                                 <Box>
                                                     <Table size="small">
                                                         <TableBody>
-                                                            {Object.entries(student.apoyosPIE).map(([key, value]) => (
+                                                            {Object.entries(student?.apoyosPIE).map(([key, value]) => (
                                                                 <TableRow key={key}>
                                                                     <TableCell 
                                                                         component="th"
@@ -849,14 +855,14 @@ export default function StudentDetailPage() {
                                                 <ListItem>
                                                     <ListItemText 
                                                         primary={<Typography variant="subtitle2">Recibe Beneficio</Typography>}
-                                                        secondary={student.beneficioJUNAEB ? 'Sí' : 'No'} 
+                                                        secondary={student?.beneficioJUNAEB ? 'Sí' : 'No'} 
                                                     />
                                                 </ListItem>
-                                                {student.tipoBeneficioJUNAEB && (
+                                                {student?.tipoBeneficioJUNAEB && (
                                                     <ListItem>
                                                         <ListItemText 
                                                             primary={<Typography variant="subtitle2">Tipos de Beneficios</Typography>}
-                                                            secondary={student.tipoBeneficioJUNAEB.join(', ')} 
+                                                            secondary={student?.tipoBeneficioJUNAEB.join(', ')} 
                                                         />
                                                     </ListItem>
                                                 )}
@@ -875,7 +881,7 @@ export default function StudentDetailPage() {
                                                 <ListItem>
                                                     <ListItemText 
                                                         primary={<Typography variant="subtitle2">Alumno Prioritario</Typography>}
-                                                        secondary={student.prioritario ? 'Sí' : 'No'} 
+                                                        secondary={student?.prioritario ? 'Sí' : 'No'} 
                                                     />
                                                 </ListItem>
                                             </List>

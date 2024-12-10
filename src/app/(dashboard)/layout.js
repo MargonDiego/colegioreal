@@ -2,71 +2,76 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Box, Grid, useMediaQuery, useTheme } from '@mui/material';
+import { Box, useMediaQuery, useTheme } from '@mui/material';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
 import DashboardHeader from '@/components/dashboard/DashboardHeader';
 import DashboardSidebar from '@/components/dashboard/DashboardSidebar';
+import DashboardFooter from '@/components/dashboard/DashboardFooter';
 
 const DRAWER_WIDTH = 280;
+const DRAWER_WIDTH_COLLAPSED = 65;
 
 export default function DashboardLayout({ children }) {
     const [sidebarOpen, setSidebarOpen] = useState(true);
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down('md'));
 
-    // Ajuste automático del estado del sidebar en dispositivos móviles
     useEffect(() => {
         if (isMobile) {
             setSidebarOpen(false);
         }
     }, [isMobile]);
 
-    const handleSidebarToggle = () => {
-        setSidebarOpen(!sidebarOpen);
-    };
-
     return (
         <ProtectedRoute>
             <Box
                 sx={{
-                    display: 'flex',
+                    display: 'grid',
+                    gridTemplateColumns: 'auto 1fr',
+                    gridTemplateRows: 'auto 1fr auto',
                     minHeight: '100vh',
-                    backgroundColor: theme.palette.background.default,
+                    width: '100%',
+                    gridTemplateAreas: `
+                        "header header"
+                        "sidebar main"
+                        "footer footer"
+                    `
                 }}
             >
-                <Grid container>
-                    {/* Header */}
-                    <Grid item xs={12}>
-                        <DashboardHeader onSidebarToggle={handleSidebarToggle} />
-                    </Grid>
-                    {/* Sidebar y Contenido */}
-                    <Grid item xs={2}>
-                        <DashboardSidebar
-                            open={sidebarOpen}
-                            onClose={() => setSidebarOpen(false)}
-                            variant={isMobile ? 'temporary' : 'permanent'}
-                            sx={{ mt: 2 }} // Margen superior para evitar superposición
-                        />
-                    </Grid>
-                    <Grid item xs={10}>
-                        {/* Main Content */}
-                        <Box
-                            component="main"
-                            sx={{
-                                flexGrow: 1,
-                                p: 3,
-                                mt: 2, // Margen superior para evitar que el contenido esté cubierto por el header
-                                transition: theme.transitions.create(['margin', 'padding'], {
-                                    easing: theme.transitions.easing.sharp,
-                                    duration: theme.transitions.duration.leavingScreen,
-                                }),
-                                backgroundColor: theme.palette.background.paper,
-                            }}
-                        >
-                            {children}
-                        </Box>
-                    </Grid>
-                </Grid>
+                {/* Header */}
+                <Box sx={{ gridArea: 'header' }}>
+                    <DashboardHeader />
+                </Box>
+
+                {/* Sidebar */}
+                <Box sx={{ gridArea: 'sidebar' }}>
+                    <DashboardSidebar
+                        open={sidebarOpen}
+                        onClose={() => setSidebarOpen(false)}
+                        variant={isMobile ? 'temporary' : 'permanent'}
+                    />
+                </Box>
+
+                {/* Main Content */}
+                <Box
+                    component="main"
+                    sx={{
+                        gridArea: 'main',
+                        p: { xs: 2, sm: 3 },
+                        backgroundColor: theme.palette.background.default,
+                        overflow: 'auto',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: 3
+                    }}
+                >
+                    {children}
+                </Box>
+
+                {/* Footer */}
+                <Box sx={{ gridArea: 'footer' }}>
+                    <DashboardFooter />
+                </Box>
             </Box>
         </ProtectedRoute>
     );

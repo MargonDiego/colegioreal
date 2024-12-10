@@ -96,8 +96,8 @@ export default function UsersPage() {
           )}
         </Box>
         <Card>
-          <Box sx={{ minWidth: 800, overflowX: 'auto' }}>
-            <Table>
+          <Box sx={{ width: '100%', overflowX: 'auto' }}>
+            <Table size="small">
               <TableHead>
                 <TableRow>
                   <TableCell>Nombre</TableCell>
@@ -112,9 +112,9 @@ export default function UsersPage() {
                   .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                   .map((user) => (
                     <TableRow hover key={user.id}>
-                      <TableCell>
+                      <TableCell sx={{ py: 1 }}>
                         <Typography
-                          variant="body1"
+                          variant="body2"
                           sx={{
                             cursor: 'pointer',
                             '&:hover': {
@@ -126,27 +126,29 @@ export default function UsersPage() {
                           {`${user.firstName} ${user.lastName}`}
                         </Typography>
                       </TableCell>
-                      <TableCell>{user.rut}</TableCell>
-                      <TableCell>{user.email}</TableCell>
-                      <TableCell>{user.role}</TableCell>
-                      <TableCell align="right">
+                      <TableCell sx={{ py: 1 }}>{user.rut}</TableCell>
+                      <TableCell sx={{ py: 1 }}>{user.email}</TableCell>
+                      <TableCell sx={{ py: 1 }}>{user.role}</TableCell>
+                      <TableCell align="right" sx={{ py: 1, whiteSpace: 'nowrap' }}>
                         {canEdit && (
                           <Tooltip title="Editar">
                             <IconButton
+                              size="small"
                               onClick={() => router.push(`/usuarios/${user.id}/editar`)}
                               disabled={isDeleting}
                             >
-                              <EditIcon />
+                              <EditIcon fontSize="small" />
                             </IconButton>
                           </Tooltip>
                         )}
                         {canDelete && (
                           <Tooltip title="Eliminar">
                             <IconButton
+                              size="small"
                               onClick={() => handleDeleteUser(user.id)}
                               disabled={isDeleting}
                             >
-                              <DeleteIcon />
+                              <DeleteIcon fontSize="small" />
                             </IconButton>
                           </Tooltip>
                         )}
@@ -170,9 +172,9 @@ export default function UsersPage() {
             onRowsPerPageChange={handleChangeRowsPerPage}
             page={page}
             rowsPerPage={rowsPerPage}
-            rowsPerPageOptions={[5, 10, 25]}
+            rowsPerPageOptions={[10, 25, 50]}
             labelRowsPerPage="Filas por página"
-            labelDisplayedRows={({ from, to, count }) => `${from}-${to} de ${count}`}
+            sx={{ borderTop: 1, borderColor: 'divider' }}
           />
         </Card>
       </Box>
