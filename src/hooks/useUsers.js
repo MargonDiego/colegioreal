@@ -136,15 +136,37 @@ export function useUsers(options = {}) {
             if (!checkEntity('USER', 'DELETE')) {
                 throw new Error('No autorizado para eliminar usuarios.');
             }
-            const response = await axiosPrivate.delete(`/users/${id}`);
-            return response.data;
+            try {
+                console.log('Intentando eliminar usuario con ID:', id);
+                const response = await axiosPrivate.delete(`/users/${id}`);
+                console.log('Respuesta de eliminación:', response.data);
+                return response.data;
+            } catch (error) {
+                console.error('Error al eliminar usuario:', error);
+                if (error.response?.status === 404) {
+                    throw new Error('Usuario no encontrado');
+                } else if (error.response?.data?.message) {
+                    throw new Error(error.response.data.message);
+                } else {
+                    throw new Error('Error al eliminar usuario');
+                }
+            }
         },
-        onSuccess: () => {
+        onSuccess: (_, id) => {
+            console.log('Usuario eliminado exitosamente:', id);
             queryClient.invalidateQueries(['users']);
-            enqueueSnackbar('Usuario eliminado correctamente.', { variant: 'success' });
+            queryClient.invalidateQueries(['user', id]);
+            enqueueSnackbar('Usuario eliminado correctamente', { 
+                variant: 'success',
+                autoHideDuration: 3000
+            });
         },
         onError: (error) => {
-            enqueueSnackbar(error.message || 'Error al eliminar usuario', { variant: 'error' });
+            console.error('Error en la eliminación:', error);
+            enqueueSnackbar(error.message || 'Error al eliminar usuario', { 
+                variant: 'error',
+                autoHideDuration: 5000
+            });
         }
     });
 

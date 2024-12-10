@@ -36,7 +36,7 @@ const ProtectedRoute = ({ children, allowedRoles = [] }) => {
         }
 
         checkAuth()
-    }, [])
+    }, [user, router, initializeAuth])
 
     useEffect(() => {
         if (!isChecking && user && allowedRoles.length > 0) {

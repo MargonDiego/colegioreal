@@ -504,6 +504,7 @@ export const UserCreateForm = ({ onSuccess }) => {
                         renderTags={(value, getTagProps) =>
                           value.map((option, index) => (
                             <Chip
+                              key={index}
                               label={option}
                               {...getTagProps({ index })}
                               onDelete={() => {

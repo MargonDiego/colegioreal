@@ -12,105 +12,86 @@ export default function StudentsLayout({ children }) {
     return (
         <Box
             sx={{
-                flexGrow: 1,
-                p: 3,
                 display: 'flex',
                 flexDirection: 'column',
-                backgroundColor: theme.palette.background.paper,
-                borderRadius: 2,
-                boxShadow: theme.shadows[1],
-                mt:8,
+                gap: 3,
+                width: '100%',
+                height: '100%',
+                overflow: 'hidden'
             }}
         >
+            {/* Header de la sección */}
             <Box
                 sx={{
-                    pb: 3,
-                    borderBottom: `2px solid ${theme.palette.divider}`,
-                    mb: 3,
+                    backgroundColor: theme.palette.background.paper,
+                    borderRadius: '12px',
+                    p: 3,
+                    boxShadow: theme.shadows[1],
                 }}
             >
                 <Typography
                     variant="h4"
                     sx={{
                         fontWeight: 'bold',
-                        mb: 1,
                         color: theme.palette.text.primary,
+                        mb: 3
                     }}
                 >
                     Gestión de Estudiantes
                 </Typography>
+
+                {/* Navegación */}
                 <Box
                     sx={{
                         display: 'flex',
                         gap: 2,
-                        mt: 2,
                         '& a': {
                             textDecoration: 'none',
                             padding: '8px 16px',
                             borderRadius: theme.shape.borderRadius,
-                            transition: 'all 0.3s ease',
-                            fontWeight: 500,
-                        },
-                        '& a:hover': {
-                            backgroundColor: alpha(theme.palette.primary.main, 0.1),
-                        },
+                            transition: 'all 0.2s ease',
+                            color: theme.palette.text.secondary,
+                            '&:hover': {
+                                backgroundColor: alpha(theme.palette.primary.main, 0.08),
+                                color: theme.palette.primary.main,
+                            },
+                            '&[data-active="true"]': {
+                                backgroundColor: alpha(theme.palette.primary.main, 0.12),
+                                color: theme.palette.primary.main,
+                                fontWeight: 'medium',
+                            }
+                        }
                     }}
                 >
-                    <MuiLink
-                        component={Link}
-                        href="/students"
-                        sx={{
-                            color: pathname === '/students' ? theme.palette.primary.main : theme.palette.text.secondary,
-                            fontWeight: pathname === '/students' ? 'bold' : 'normal',
-                            borderBottom: pathname === '/students' ? `3px solid ${theme.palette.primary.main}` : 'none',
-                            '&:hover': {
-                                color: theme.palette.primary.dark,
-                            },
-                        }}
+                    <Link 
+                        href="/students" 
+                        data-active={pathname === '/students'}
+                        passHref
                     >
-                        Listado de Estudiantes
-                    </MuiLink>
-
-                    <ProtectedResource entity="student" operation="CREATE">
-                        <MuiLink
-                            component={Link}
-                            href="/students/register"
-                            sx={{
-                                color: pathname.startsWith('/students/register')
-                                    ? theme.palette.primary.main
-                                    : theme.palette.text.secondary,
-                                fontWeight: pathname.startsWith('/students/register') ? 'bold' : 'normal',
-                                borderBottom: pathname.startsWith('/students/register')
-                                    ? `3px solid ${theme.palette.primary.main}`
-                                    : 'none',
-                                '&:hover': {
-                                    color: theme.palette.primary.dark,
-                                },
-                            }}
-                        >
-                            Registrar Estudiante
-                        </MuiLink>
-                    </ProtectedResource>
-
-                    <MuiLink
-                        component={Link}
-                        href="/students/reports"
-                        sx={{
-                            color: pathname === '/students/reports' ? theme.palette.primary.main : theme.palette.text.secondary,
-                            fontWeight: pathname === '/students/reports' ? 'bold' : 'normal',
-                            borderBottom: pathname === '/students/reports'
-                                ? `3px solid ${theme.palette.primary.main}`
-                                : 'none',
-                            '&:hover': {
-                                color: theme.palette.primary.dark,
-                            },
-                        }}
+                        <MuiLink component="span">Lista de Estudiantes</MuiLink>
+                    </Link>
+                    <Link 
+                        href="/students/register" 
+                        data-active={pathname === '/students/register'}
+                        passHref
                     >
-                        Reportes
-                    </MuiLink>
+                        <MuiLink component="span">Nuevo Estudiante</MuiLink>
+                    </Link>
                 </Box>
             </Box>
-            <Box sx={{ mt: 3 }}>{children}</Box>
+
+            {/* Contenido principal */}
+            <Box
+                sx={{
+                    flex: 1,
+                    backgroundColor: theme.palette.background.paper,
+                    borderRadius: '12px',
+                    overflow: 'auto',
+                    boxShadow: theme.shadows[1],
+                }}
+            >
+                {children}
+            </Box>
         </Box>
     );
 }

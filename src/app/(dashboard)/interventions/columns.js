@@ -41,6 +41,84 @@ const getTypeColor = (type) => {
     return typeColors[type] || 'default'
 }
 
+const InterventionActions = (params) => {
+    const router = useRouter()
+    const { enqueueSnackbar } = useSnackbar()
+    const { deleteMutation } = useInterventions()
+    const [openDeleteDialog, setOpenDeleteDialog] = useState(false)
+
+    const handleDelete = async () => {
+        try {
+            await deleteMutation.mutateAsync(params.row.id)
+            setOpenDeleteDialog(false)
+        } catch (error) {
+            enqueueSnackbar(`Error al eliminar: ${error.message}`, { variant: 'error' })
+        }
+    }
+
+    return (
+        <>
+            <Box sx={{ display: 'flex', gap: '8px' }}>
+                <Tooltip title="Ver detalles" arrow>
+                    <IconButton
+                        onClick={() => router.push(`/interventions/${params.row.id}`)}
+                        size="small"
+                        color="primary"
+                    >
+                        <VisibilityIcon />
+                    </IconButton>
+                </Tooltip>
+                <ProtectedResource 
+                    entity="INTERVENTION" 
+                    operation="UPDATE"
+                >
+                    <Tooltip title="Editar" arrow>
+                        <IconButton
+                            onClick={() => router.push(`/interventions/${params.row.id}/edit`)}
+                            size="small"
+                            color="primary"
+                        >
+                            <EditIcon />
+                        </IconButton>
+                    </Tooltip>
+                </ProtectedResource>
+                <ProtectedResource 
+                    entity="INTERVENTION" 
+                    operation="DELETE"
+                >
+                    <Tooltip title="Eliminar" arrow>
+                        <IconButton
+                            onClick={() => setOpenDeleteDialog(true)}
+                            size="small"
+                            color="error"
+                        >
+                            <DeleteIcon />
+                        </IconButton>
+                    </Tooltip>
+                </ProtectedResource>
+            </Box>
+
+            <Dialog
+                open={openDeleteDialog}
+                onClose={() => setOpenDeleteDialog(false)}
+            >
+                <DialogTitle>{"¿Confirmar eliminación?"}</DialogTitle>
+                <DialogContent>
+                    <DialogContentText>
+                        Esta acción no se puede deshacer. ¿Estás seguro de que deseas eliminar esta intervención?
+                    </DialogContentText>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={() => setOpenDeleteDialog(false)}>Cancelar</Button>
+                    <Button onClick={handleDelete} color="error" autoFocus>
+                        Eliminar
+                    </Button>
+                </DialogActions>
+            </Dialog>
+        </>
+    )
+}
+
 export const columns = [
     {
         field: "title",
@@ -160,92 +238,6 @@ export const columns = [
         flex: 1,
         minWidth: 150,
         sortable: false,
-        renderCell: (params) => {
-            const router = useRouter()
-            const { enqueueSnackbar } = useSnackbar()
-            const { deleteMutation } = useInterventions()
-            const [openDeleteDialog, setOpenDeleteDialog] = useState(false)
-
-            const handleDelete = async () => {
-                try {
-                    await deleteMutation.mutateAsync(params.row.id)
-                    setOpenDeleteDialog(false)
-                } catch (error) {
-                    enqueueSnackbar(`Error al eliminar: ${error.message}`, { variant: 'error' })
-                }
-            }
-
-            return (
-                <>
-                    <Box sx={{ display: 'flex', gap: '8px' }}>
-                        <Tooltip title="Ver detalles" arrow>
-                            <IconButton
-                                size="small"
-                                onClick={() => router.push(`/interventions/${params.row.id}`)}
-                            >
-                                <VisibilityIcon fontSize="small" />
-                            </IconButton>
-                        </Tooltip>
-                        <ProtectedResource 
-                            entity="INTERVENTION" 
-                            operation="UPDATE"
-                        >
-                            <Tooltip title="Editar" arrow>
-                                <IconButton
-                                    size="small"
-                                    onClick={() => router.push(`/interventions/${params.row.id}/edit`)}
-                                >
-                                    <EditIcon fontSize="small" />
-                                </IconButton>
-                            </Tooltip>
-                        </ProtectedResource>
-                        <ProtectedResource 
-                            entity="INTERVENTION" 
-                            operation="DELETE"
-                        >
-                            <Tooltip title="Eliminar" arrow>
-                                <IconButton
-                                    size="small"
-                                    color="error"
-                                    onClick={() => setOpenDeleteDialog(true)}
-                                >
-                                    <DeleteIcon fontSize="small" />
-                                </IconButton>
-                            </Tooltip>
-                        </ProtectedResource>
-                    </Box>
-
-                    <Dialog
-                        open={openDeleteDialog}
-                        onClose={() => setOpenDeleteDialog(false)}
-                        aria-labelledby="alert-dialog-title"
-                        aria-describedby="alert-dialog-description"
-                    >
-                        <DialogTitle id="alert-dialog-title">
-                            {"Confirmar eliminación"}
-                        </DialogTitle>
-                        <DialogContent>
-                            <DialogContentText id="alert-dialog-description">
-                                ¿Está seguro que desea eliminar esta intervención? 
-                                Esta acción no se puede deshacer.
-                            </DialogContentText>
-                        </DialogContent>
-                        <DialogActions>
-                            <Button onClick={() => setOpenDeleteDialog(false)} color="primary">
-                                Cancelar
-                            </Button>
-                            <Button 
-                                onClick={handleDelete} 
-                                color="error" 
-                                autoFocus
-                                disabled={deleteMutation.isLoading}
-                            >
-                                {deleteMutation.isLoading ? 'Eliminando...' : 'Eliminar'}
-                            </Button>
-                        </DialogActions>
-                    </Dialog>
-                </>
-            )
-        }
+        renderCell: (params) => <InterventionActions {...params} />
     }
 ]

@@ -6,7 +6,7 @@ import { useState } from 'react';
 import useAxiosPrivate from './useAxiosPrivate';
 import { studentsApi } from '@/lib/api/services/students';
 
-export function useStudents(options = {}) {
+export function useStudents({ studentId } = {}) {
     const axiosPrivate = useAxiosPrivate();
     const { enqueueSnackbar } = useSnackbar();
     const { checkEntity } = usePermissions();
@@ -77,30 +77,38 @@ export function useStudents(options = {}) {
 
     // Parámetros de consulta para la API
     const queryParams = {
-        grade: options.filters?.grade,
-        isActive: options.filters?.isActive,
-        search: options.filters?.search,
-        academicYear: options.filters?.academicYear,
-        section: options.filters?.section,
-        matriculaNumber: options.filters?.matriculaNumber,
-        enrollmentStatus: options.filters?.enrollmentStatus,
-        comuna: options.filters?.comuna,
-        region: options.filters?.region,
-        page: options.pagination?.page || 1,
-        limit: options.pagination?.limit || 10,
+        grade: studentId,
+        isActive: studentId,
+        search: studentId,
+        academicYear: studentId,
+        section: studentId,
+        matriculaNumber: studentId,
+        enrollmentStatus: studentId,
+        comuna: studentId,
+        region: studentId
     };
 
-    // Consulta para obtener la lista de estudiantes
-    const query = useQuery({
-        queryKey: ['students', queryParams],
+    // Query para obtener estudiantes
+    const { data, isLoading, error } = useQuery({
+        queryKey: ['students', studentId, queryParams],
         queryFn: async () => {
-            if (!checkEntity('STUDENT', 'READ')) {
-                throw new Error('No autorizado para ver estudiantes.');
+            try {
+                if (studentId) {
+                    const response = await studentsApi.getOne(studentId);
+                    return { data: [response] };
+                } else {
+                    console.log('Obteniendo lista completa de estudiantes...');
+                    const response = await studentsApi.getAll(queryParams);
+                    console.log('Estudiantes obtenidos:', response);
+                    return response;
+                }
+            } catch (error) {
+                console.error('Error al obtener estudiantes:', error);
+                throw error;
             }
-            const response = await axiosPrivate.get('/students', { params: queryParams });
-            return response.data;
         },
-        keepPreviousData: true,
+        staleTime: 30000, // 30 segundos antes de considerar los datos obsoletos
+        cacheTime: 300000, // 5 minutos de cache
     });
 
     // Mutación para crear un nuevo estudiante
@@ -123,35 +131,31 @@ export function useStudents(options = {}) {
     // Mutación para actualizar un estudiante
     const updateMutation = useMutation({
         mutationFn: async ({ id, data }) => {
-            if (!checkEntity('STUDENT', 'UPDATE')) {
-                throw new Error('No autorizado para actualizar estudiantes.');
-            }
-
             if (!id) throw new Error('El ID del estudiante es requerido.');
-
-            if (data.rut) {
-                const normalizedRut = normalizeRut(data.rut);
-                if (!validateRut(normalizedRut)) {
-                    throw new Error('El RUT tiene un formato inválido.');
-                }
-
-                const rutExists = await checkRutExists(normalizedRut);
-                if (rutExists) {
-                    throw new Error('Ya existe otro estudiante con este RUT.');
-                }
-
-                data.rut = normalizedRut;
+            
+            try {
+                const response = await studentsApi.update(id, data);
+                return response;
+            } catch (error) {
+                console.error('Error en updateMutation:', error);
+                throw error;
             }
-
-            const response = await studentsApi.update(id, data);
-            return response;
         },
-        onSuccess: () => {
+        onSuccess: (data, variables) => {
+            // Actualizar la caché del estudiante específico
+            queryClient.setQueryData(['students', variables.id], (oldData) => {
+                if (oldData) {
+                    return { data: [data] };
+                }
+                return oldData;
+            });
+            
+            // Invalidar la lista general de estudiantes
             queryClient.invalidateQueries(['students']);
-            enqueueSnackbar('Estudiante actualizado correctamente.', { variant: 'success' });
         },
         onError: (error) => {
-            enqueueSnackbar(error.message, { variant: 'error' });
+            console.error('Error en updateMutation:', error);
+            enqueueSnackbar(error.message || 'Error al actualizar estudiante', { variant: 'error' });
         },
     });
 
@@ -161,40 +165,53 @@ export function useStudents(options = {}) {
             if (!checkEntity('STUDENT', 'DELETE')) {
                 throw new Error('No autorizado para eliminar estudiantes.');
             }
-            if (!id) throw new Error('El ID del estudiante es requerido.');
-
-            const response = await axiosPrivate.delete(`/students/${id}`);
-            return response.data;
+            try {
+                console.log('Intentando eliminar estudiante con ID:', id);
+                const response = await studentsApi.delete(id);
+                console.log('Respuesta de eliminación:', response);
+                return response;
+            } catch (error) {
+                console.error('Error al eliminar estudiante:', error);
+                if (error.response?.status === 404) {
+                    throw new Error('Estudiante no encontrado');
+                } else if (error.response?.data?.message) {
+                    throw new Error(error.response.data.message);
+                } else {
+                    throw new Error('Error al eliminar estudiante');
+                }
+            }
         },
-        onSuccess: () => {
+        onSuccess: (_, id) => {
+            console.log('Estudiante eliminado exitosamente:', id);
             queryClient.invalidateQueries(['students']);
-            enqueueSnackbar('Estudiante eliminado correctamente.', { variant: 'success' });
+            queryClient.invalidateQueries(['student', id]);
+            enqueueSnackbar('Estudiante eliminado correctamente', { 
+                variant: 'success',
+                autoHideDuration: 3000
+            });
         },
         onError: (error) => {
-            enqueueSnackbar(error.message, { variant: 'error' });
-        },
+            console.error('Error en la eliminación:', error);
+            enqueueSnackbar(error.message || 'Error al eliminar estudiante', { 
+                variant: 'error',
+                autoHideDuration: 5000
+            });
+        }
     });
 
-    // Exportar funciones y estados del hook
+    // Retornar los valores y funciones necesarias
     return {
-        createStudent: (data) => {
-            console.log('createStudent called with:', data);
-            return createMutation.mutateAsync(data);
-        },
-        data: query.data,
-        isLoading: query.isLoading,
-        isError: query.isError,
-        error: query.error,
+        data,
+        isLoading,
+        error,
         selectedStudent,
+        setSelectedStudent,
+        createStudent: createMutation.mutate,
         updateStudent: updateMutation.mutate,
         deleteStudent: deleteMutation.mutate,
+        isDeleting: deleteMutation.isLoading,
         checkRutExists,
         normalizeRut,
-        validateRut,
-        selectStudent: setSelectedStudent,
-        clearSelection: () => setSelectedStudent(null),
-        canCreate: checkEntity('STUDENT', 'CREATE'),
-        canUpdate: checkEntity('STUDENT', 'UPDATE'),
-        canDelete: checkEntity('STUDENT', 'DELETE'),
+        validateRut
     };
 }

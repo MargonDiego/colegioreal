@@ -19,7 +19,6 @@
     "@mui/x-date-pickers": "^6.19.4",
     "@tanstack/react-query": "^4.36.1",
     "axios": "^1.6.7",
-    "colegioreal": "file:",
     "date-fns": "^2.30.0",
     "dayjs": "^1.11.10",
     "framer-motion": "^11.0.6",
