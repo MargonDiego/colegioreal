@@ -12,37 +12,55 @@ export function useUsers(options = {}) {
     const queryClient = useQueryClient();
     const [selectedUser, setSelectedUser] = useState(null);
 
-    const queryParams = {
-        role: options.filters?.role,
-        department: options.filters?.department,
-        staffType: options.filters?.staffType,
-        isActive: options.filters?.isActive,
-        search: options.filters?.search,
-        permisos: options.filters?.permisos,
-        subjectsTeaching: options.filters?.subjectsTeaching,
-        position: options.filters?.position,
-        phoneNumber: options.filters?.phoneNumber,
-        birthDate: options.filters?.birthDate,
-        address: options.filters?.address,
-        comuna: options.filters?.comuna,
-        region: options.filters?.region,
-        emergencyContact: options.filters?.emergencyContact,
-        page: options.pagination?.page || 1,
-        limit: options.pagination?.limit || 10,
+    // Validación de RUT chileno
+    const validateRut = (rut) => {
+        if (!/^[0-9]{1,2}\.[0-9]{3}\.[0-9]{3}-[0-9kK]{1}$/i.test(rut)) {
+            throw new Error('Formato de RUT inválido. Debe ser XX.XXX.XXX-X');
+        }
+        // Convertir 'k' minúscula a mayúscula si es necesario
+        if (rut.endsWith('-k')) {
+            rut = rut.slice(0, -1) + 'K';
+        }
+        return true;
     };
 
+    // Validación de email
+    const validateEmail = (email) => {
+        if (!/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i.test(email)) {
+            throw new Error('Formato de email inválido');
+        }
+        return true;
+    };
+
+    // Si se proporciona un ID, obtener usuario específico
+    const userId = options.filters?.id;
+    const isSpecificUser = Boolean(userId);
+
     const query = useQuery({
-        queryKey: ['users', queryParams],
+        queryKey: isSpecificUser ? ['user', userId] : ['users', options],
         queryFn: async () => {
             if (!checkEntity('USER', 'READ')) {
                 throw new Error('No autorizado para ver usuarios.');
             }
-            if (queryParams.phoneNumber && queryParams.phoneNumber.length < 8) {
-                throw new Error('El número de teléfono debe tener al menos 8 dígitos.');
+
+            if (isSpecificUser) {
+                const response = await axiosPrivate.get(`/users/${userId}`);
+                return response.data;
+            } else {
+                const response = await axiosPrivate.get('/users', { 
+                    params: {
+                        role: options.filters?.role,
+                        isActive: options.filters?.isActive,
+                        search: options.filters?.search,
+                        region: options.filters?.region,
+                        page: options.pagination?.page || 1,
+                        limit: options.pagination?.limit || 10,
+                    }
+                });
+                return response.data;
             }
-            const response = await axiosPrivate.get('/users', { params: queryParams });
-            return response.data;
         },
+        enabled: checkEntity('USER', 'READ') && (!isSpecificUser || Boolean(userId)),
     });
 
     const createMutation = useMutation({
@@ -50,17 +68,39 @@ export function useUsers(options = {}) {
             if (!checkEntity('USER', 'CREATE')) {
                 throw new Error('No autorizado para crear usuarios.');
             }
-            if (!data.firstName || !data.lastName || !data.email || !data.rut) {
-                throw new Error('Nombre, apellido, email y RUT son obligatorios.');
+
+            // Validaciones obligatorias
+            if (!data.firstName?.trim()) throw new Error('El nombre es obligatorio');
+            if (!data.lastName?.trim()) throw new Error('El apellido es obligatorio');
+            if (!data.email?.trim()) throw new Error('El email es obligatorio');
+            if (!data.rut?.trim()) throw new Error('El RUT es obligatorio');
+            if (!data.password?.trim()) throw new Error('La contraseña es obligatoria');
+            if (!data.role?.trim()) throw new Error('El rol es obligatorio');
+
+            // Validaciones de formato
+            validateRut(data.rut);
+            validateEmail(data.email);
+
+            if (data.password.length < 6) {
+                throw new Error('La contraseña debe tener al menos 6 caracteres');
             }
 
-            const response = await axiosPrivate.post('/users', data);
-            return response.data;
+            try {
+                const response = await axiosPrivate.post('/users', data);
+                return response.data;
+            } catch (error) {
+                console.error('Error en createMutation:', error);
+                throw error.response?.data?.message || error.message || 'Error al crear usuario';
+            }
         },
         onSuccess: () => {
             queryClient.invalidateQueries(['users']);
             enqueueSnackbar('Usuario creado correctamente.', { variant: 'success' });
         },
+        onError: (error) => {
+            console.error('Error en onError:', error);
+            enqueueSnackbar(error.message || 'Error al crear usuario', { variant: 'error' });
+        }
     });
 
     const updateMutation = useMutation({
@@ -68,9 +108,14 @@ export function useUsers(options = {}) {
             if (!checkEntity('USER', 'UPDATE')) {
                 throw new Error('No autorizado para actualizar usuarios.');
             }
-            if (!id) throw new Error('El ID del usuario es requerido.');
-            if (!data.firstName || !data.lastName) {
-                throw new Error('Nombre y apellido son obligatorios para actualizar.');
+
+            // Validaciones obligatorias
+            if (!data.firstName?.trim()) throw new Error('El nombre es obligatorio');
+            if (!data.lastName?.trim()) throw new Error('El apellido es obligatorio');
+            if (data.email?.trim()) validateEmail(data.email);
+            if (data.rut?.trim()) validateRut(data.rut);
+            if (data.password?.trim() && data.password.length < 6) {
+                throw new Error('La contraseña debe tener al menos 6 caracteres');
             }
 
             const response = await axiosPrivate.put(`/users/${id}`, data);
@@ -78,8 +123,12 @@ export function useUsers(options = {}) {
         },
         onSuccess: () => {
             queryClient.invalidateQueries(['users']);
+            queryClient.invalidateQueries(['user']);
             enqueueSnackbar('Usuario actualizado correctamente.', { variant: 'success' });
         },
+        onError: (error) => {
+            enqueueSnackbar(error.message || 'Error al actualizar usuario', { variant: 'error' });
+        }
     });
 
     const deleteMutation = useMutation({
@@ -94,18 +143,33 @@ export function useUsers(options = {}) {
             queryClient.invalidateQueries(['users']);
             enqueueSnackbar('Usuario eliminado correctamente.', { variant: 'success' });
         },
+        onError: (error) => {
+            enqueueSnackbar(error.message || 'Error al eliminar usuario', { variant: 'error' });
+        }
     });
 
     return {
+        // Queries
         data: query.data,
         isLoading: query.isLoading,
         isError: query.isError,
         error: query.error,
-        selectedUser,
+        
+        // Mutations
+        createMutation,
+        updateMutation,
+        deleteMutation,
         createUser: createMutation.mutate,
         updateUser: updateMutation.mutate,
         deleteUser: deleteMutation.mutate,
-        selectUser: setSelectedUser,
-        clearSelection: () => setSelectedUser(null),
+        
+        // Estado de las mutaciones
+        isCreating: createMutation.isLoading,
+        isUpdating: updateMutation.isLoading,
+        isDeleting: deleteMutation.isLoading,
+        
+        // Estado seleccionado
+        selectedUser,
+        setSelectedUser,
     };
 }

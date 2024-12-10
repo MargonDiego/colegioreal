@@ -1,6 +1,12 @@
 // lib/api/services/interventionComments.js
 import { axiosPrivate } from '../axios';
 
+const VALID_COMMENT_TYPES = [
+    'Seguimiento', 'Entrevista', 'Acuerdo',
+    'Observación', 'Derivación', 'Contacto Apoderado',
+    'Reunión Equipo', 'Otro'
+];
+
 export const interventionCommentsApi = {
     getAll: async (params = {}) => {
         // Manejo de parámetros y validaciones
@@ -14,8 +20,8 @@ export const interventionCommentsApi = {
         };
 
         // Validaciones de reglas de negocio
-        if (queryParams.tipo && !['Observación', 'Feedback', 'Informe'].includes(queryParams.tipo)) {
-            throw new Error('El tipo de comentario es inválido. Debe ser "Observación", "Feedback" o "Informe".');
+        if (queryParams.tipo && !VALID_COMMENT_TYPES.includes(queryParams.tipo)) {
+            throw new Error(`El tipo de comentario es inválido. Debe ser uno de: ${VALID_COMMENT_TYPES.join(', ')}`);
         }
         if (queryParams.interventionId && isNaN(queryParams.interventionId)) {
             throw new Error('El ID de la intervención debe ser un número válido.');
@@ -39,8 +45,8 @@ export const interventionCommentsApi = {
         if (data.isPrivate !== undefined && typeof data.isPrivate !== 'boolean') {
             throw new Error('El campo "isPrivate" debe ser booleano.');
         }
-        if (!['Observación', 'Feedback', 'Informe'].includes(data.tipo)) {
-            throw new Error('El tipo de comentario es inválido. Debe ser "Observación", "Feedback" o "Informe".');
+        if (!VALID_COMMENT_TYPES.includes(data.tipo)) {
+            throw new Error(`El tipo de comentario es inválido. Debe ser uno de: ${VALID_COMMENT_TYPES.join(', ')}`);
         }
         if (data.evidencias && !Array.isArray(data.evidencias)) {
             throw new Error('Las evidencias deben ser un arreglo.');
@@ -55,8 +61,8 @@ export const interventionCommentsApi = {
         if (!data.content) {
             throw new Error('El contenido del comentario es obligatorio para actualizar.');
         }
-        if (data.tipo && !['Observación', 'Feedback', 'Informe'].includes(data.tipo)) {
-            throw new Error('El tipo de comentario es inválido.');
+        if (data.tipo && !VALID_COMMENT_TYPES.includes(data.tipo)) {
+            throw new Error(`El tipo de comentario es inválido. Debe ser uno de: ${VALID_COMMENT_TYPES.join(', ')}`);
         }
 
         const response = await axiosPrivate.put(`/intervention-comments/${id}`, data);

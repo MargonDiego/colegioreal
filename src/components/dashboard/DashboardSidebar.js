@@ -31,7 +31,7 @@ const DRAWER_WIDTH = 280;
 const menuItems = [
     { title: 'Dashboard', path: '/dashboard', icon: DashboardIcon, permission: { entity: 'DASHBOARD', operation: 'READ' } },
     { title: 'Estudiantes', path: '/students', icon: SchoolIcon, permission: { entity: 'STUDENT', operation: 'READ' } },
-    { title: 'Intervenciones', path: '/intervenciones', icon: PsychologyIcon, permission: { entity: 'INTERVENTION', operation: 'READ' } },
+    { title: 'Intervenciones', path: '/interventions', icon: PsychologyIcon, permission: { entity: 'INTERVENTION', operation: 'READ' } },
     { title: 'Usuarios', path: '/usuarios', icon: SupervisorAccountIcon, permission: { entity: 'USER', operation: 'READ' } },
     { title: 'Auditoría', path: '/auditoria', icon: AssessmentIcon, permission: { entity: 'AUDIT', operation: 'READ' } },
 ];

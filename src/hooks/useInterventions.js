@@ -93,10 +93,26 @@ export function useInterventions(options = {}) {
             const response = await axiosPrivate.delete(`/interventions/${id}`);
             return response.data;
         },
-        onSuccess: () => {
+        onSuccess: (_, id) => {
+            // Invalidar consultas específicas y generales
             queryClient.invalidateQueries(['interventions']);
+            queryClient.invalidateQueries(['interventions', id]);
+            
+            // Actualizar caché manualmente
+            const currentData = queryClient.getQueryData(['interventions']);
+            if (currentData) {
+                const updatedInterventions = {
+                    ...currentData,
+                    interventions: currentData.interventions.filter(intervention => intervention.id !== id)
+                };
+                queryClient.setQueryData(['interventions'], updatedInterventions);
+            }
+
             enqueueSnackbar('Intervención eliminada correctamente', { variant: 'success' });
         },
+        onError: (error) => {
+            enqueueSnackbar(`Error al eliminar: ${error.message}`, { variant: 'error' });
+        }
     });
 
     return {
@@ -105,9 +121,9 @@ export function useInterventions(options = {}) {
         isError: query.isError,
         error: query.error,
         selectedIntervention,
-        createIntervention: createMutation.mutate,
-        updateIntervention: updateMutation.mutate,
-        deleteIntervention: deleteMutation.mutate,
+        createMutation,
+        updateMutation,
+        deleteMutation,
         selectIntervention: setSelectedIntervention,
         clearSelection: () => setSelectedIntervention(null),
     };

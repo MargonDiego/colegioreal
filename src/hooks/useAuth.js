@@ -17,27 +17,38 @@ const useAuthStore = create((set, get) => ({
             const response = await authApi.login(credentials)
             console.log('Respuesta de login:', response)
 
-            // La respuesta viene directamente en response.data, no en response.data.data
             const { token, user } = response.data
             if (!user || !token) {
                 throw new Error('Respuesta inesperada de la API')
             }
 
-            // Guardar en sessionStorage
+            // Asegurarse de que todos los campos necesarios estén presentes
+            const userInfo = {
+                id: user.id,
+                email: user.email,
+                firstName: user.firstName,
+                lastName: user.lastName,
+                role: user.role,
+                staffType: user.staffType,
+                department: user.department
+            }
+
+            // Guardar en sessionStorage con toda la información
             sessionStorage.setItem('auth', JSON.stringify({
-                user,
+                user: userInfo,
                 accessToken: token
             }))
 
             // Configurar el token en axios
             axiosPrivate.defaults.headers.common['Authorization'] = `Bearer ${token}`
 
-            // Actualizar el estado
+            // Actualizar el estado con toda la información
             set({
-                user,
+                user: userInfo,
                 accessToken: token,
                 isLoading: false
             })
+
             return response
         } catch (error) {
             console.error('Error en login:', error)
@@ -148,29 +159,27 @@ const useAuthStore = create((set, get) => ({
 
     // Método para inicializar la autenticación
     initializeAuth: () => {
-        const auth = sessionStorage.getItem('auth')
-        console.log('Datos en sessionStorage:', auth)
-
-        if (auth) {
+        const storedAuth = sessionStorage.getItem('auth')
+        if (storedAuth) {
             try {
-                const authData = JSON.parse(auth)
-                console.log('Datos parseados:', authData)
-
-                if (authData.user && authData.accessToken) {
-                    // Configuramos el token en axios
-                    axiosPrivate.defaults.headers.common['Authorization'] = `Bearer ${authData.accessToken}`
-
+                const { user, accessToken } = JSON.parse(storedAuth)
+                
+                // Verificar que todos los campos necesarios estén presentes
+                if (user && user.id && user.email && accessToken) {
+                    // Configurar el token en axios
+                    axiosPrivate.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`
+                    
+                    // Actualizar el estado
                     set({
-                        user: authData.user,
-                        accessToken: authData.accessToken,
-                        refreshToken: authData.refreshToken
+                        user,
+                        accessToken,
+                        isLoading: false
                     })
                     return true
                 }
             } catch (error) {
                 console.error('Error al inicializar auth:', error)
                 sessionStorage.removeItem('auth')
-                delete axiosPrivate.defaults.headers.common['Authorization']
             }
         }
         return false
