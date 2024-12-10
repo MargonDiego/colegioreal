@@ -64,7 +64,7 @@ export default function DashboardPage() {
     console.log('usersData:', usersData);
     console.log('commentsData:', commentsData);
 
-    if (studentsData?.data && interventionsResult?.data && usersData) {
+    if (studentsData?.data && interventionsResult?.data && usersData && commentsData) {
       // Filtrar solo para las estadísticas de casos activos
       const activeInterventions = interventionsResult.data.filter(
         i => i.status === 'Pendiente' || i.status === 'En Proceso'
@@ -103,8 +103,13 @@ export default function DashboardPage() {
           .sort((a, b) => gradeOrder.indexOf(a[0]) - gradeOrder.indexOf(b[0]))
           .map(([grade, count]) => ({ grade, count }))
       );
+
+      // Set recent comments
+      if (commentsData?.data) {
+        setRecentComments(commentsData.data);
+      }
     }
-  }, [studentsData, interventionsResult, usersData]);
+  }, [studentsData, interventionsResult, usersData, commentsData]);
 
   return (
     <Container maxWidth="xl">

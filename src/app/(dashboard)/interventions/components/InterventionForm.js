@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import {
     Box,
     Paper,
@@ -78,22 +78,24 @@ export default function InterventionForm({
         console.log('External Users Data:', externalUsersData)
         console.log('Query Users Data:', usersQueryData)
         console.log('Final Users Data:', usersData)
-    }, [externalStudentsData, studentsQueryData, externalUsersData, usersQueryData])
+    }, [externalStudentsData, studentsQueryData, studentsData, externalUsersData, usersQueryData, usersData])
 
     // Transformar datos para incluir nombre completo
-    const processedStudentsData = (Array.isArray(studentsData) 
-        ? studentsData 
-        : studentsData?.data || []).map(student => ({
-            ...student,
-            name: `${student.firstName} ${student.lastName}`
-        }))
+    const processedStudentsData = useMemo(() => (
+        (Array.isArray(studentsData) ? studentsData : studentsData?.data || [])
+            .map(student => ({
+                ...student,
+                name: `${student.firstName} ${student.lastName}`
+            }))
+    ), [studentsData])
 
-    const processedUsersData = (Array.isArray(usersData) 
-        ? usersData 
-        : usersData?.data || []).map(user => ({
-            ...user,
-            name: `${user.firstName} ${user.lastName}`
-        }))
+    const processedUsersData = useMemo(() => (
+        (Array.isArray(usersData) ? usersData : usersData?.data || [])
+            .map(user => ({
+                ...user,
+                name: `${user.firstName} ${user.lastName}`
+            }))
+    ), [usersData])
 
     const isEditMode = !!initialData
 
