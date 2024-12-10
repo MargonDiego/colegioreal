@@ -34,270 +34,248 @@ const formSteps = [
         component: PersonalInfoForm,
         label: 'Información Personal',
         description: 'Datos personales del estudiante',
-        requiredFields: ['firstName', 'lastName', 'rut', 'birthDate']
+        requiredFields: ['firstName', 'lastName', 'rut', 'birthDate'],
+        icon: 'person'
     },
     {
         component: AcademicInfoForm,
         label: 'Información Académica',
         description: 'Información académica y de matrícula',
-        requiredFields: ['grade', 'academicYear', 'matriculaNumber']
+        requiredFields: ['grade', 'academicYear', 'matriculaNumber'],
+        icon: 'school'
     },
     {
         component: GuardianInfoForm,
         label: 'Información del Apoderado',
         description: 'Datos del apoderado titular y suplente',
-        requiredFields: ['apoderadoTitular.name', 'apoderadoTitular.rut', 'apoderadoTitular.phone', 'apoderadoTitular.email']
+        requiredFields: ['apoderadoTitular.name', 'apoderadoTitular.rut', 'apoderadoTitular.phone', 'apoderadoTitular.email'],
+        icon: 'people'
     },
     {
         component: HealthInfoForm,
         label: 'Información de Salud',
         description: 'Información médica relevante',
-        requiredFields: []
+        requiredFields: [],
+        icon: 'medkit'
     },
     {
         component: EmergencyContactsForm,
         label: 'Contactos de Emergencia',
         description: 'Contactos en caso de emergencia',
-        requiredFields: ['contactosEmergencia']
+        requiredFields: ['contactosEmergencia'],
+        icon: 'phone'
     },
     {
         component: RecordInfoForm,
         label: 'Registro Académico',
         description: 'Calificaciones y resultados SIMCE',
-        requiredFields: []
+        requiredFields: [],
+        icon: 'book'
     },
     {
         component: ObservationsForm,
         label: 'Observaciones',
         description: 'Observaciones generales y reconocimientos',
-        requiredFields: []
+        requiredFields: [],
+        icon: 'comment'
     }
 ];
 
-export default function StudentRegisterForm() {
-    const [currentStep, setCurrentStep] = useState(0);
+const StudentRegisterForm = () => {
+    const methods = useForm({
+        resolver: yupResolver(studentValidationSchema),
+        mode: 'onChange'
+    });
+
+    const [activeStep, setActiveStep] = useState(0);
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const [stepErrors, setStepErrors] = useState({});
-    const [touchedFields, setTouchedFields] = useState({});
+    const [error, setError] = useState(null);
+    const { createStudent } = useStudents();
     const { enqueueSnackbar } = useSnackbar();
     const router = useRouter();
 
-    const {
-        createStudent,
-        normalizeRut,
-        validateRut,
-        checkRutExists,
-        canCreate
-    } = useStudents();
-
-    const methods = useForm({
-        resolver: yupResolver(studentValidationSchema),
-        defaultValues: {
-            firstName: '',
-            lastName: '',
-            rut: '',
-            email: null,
-            birthDate: null,
-            gender: 'Otro',
-            nationality: 'Chilena',
-            grade: '',
-            academicYear: new Date().getFullYear(),
-            section: null,
-            matriculaNumber: '',
-            enrollmentStatus: 'Regular',
-            previousSchool: null,
-            address: null,
-            comuna: '',
-            region: '',
-            apoderadoTitular: {
-                name: '',
-                rut: '',
-                phone: '',
-                email: '',
-            },
-            apoderadoSuplente: {
-                name: '',
-                rut: '',
-                phone: '',
-                email: '',
-            },
-            grupoFamiliar: null,
-            contactosEmergencia: [],
-            prevision: null,
-            grupoSanguineo: null,
-            condicionesMedicas: [],
-            alergias: [],
-            medicamentos: [],
-            diagnosticoPIE: null,
-            necesidadesEducativas: null,
-            apoyosPIE: null,
-            beneficioJUNAEB: false,
-            tipoBeneficioJUNAEB: [],
-            prioritario: false,
-            preferente: false,
-            becas: null,
-            simceResults: {
-                comprensionLectura: null,
-                escritura: null,
-                matematica: null,
-                cienciasNaturales: null,
-                historiayGeografia: null,
-                ingles: null
-            },
-            academicRecord: [],
-            attendance: [],
-            registroConvivencia: null,
-            medidasDisciplinarias: [],
-            reconocimientos: [],
-            isActive: true,
-            observaciones: null,
-        },
-        mode: 'onTouched'
-    });
-
-    const {
-        handleSubmit,
-        trigger,
-        formState: { errors, touchedFields: formTouchedFields },
-        getValues,
-        watch,
-        setError,
-        clearErrors
-    } = methods;
-
-    const watchedRut = watch('rut');
-
-    useEffect(() => {
-        const timeoutId = setTimeout(async () => {
-            if (!watchedRut || watchedRut.length < 3) return;
-
-            const normalizedRut = normalizeRut(watchedRut);
-
-            if (!validateRut(normalizedRut)) {
-                setError('rut', {
-                    type: 'validation',
-                    message: 'RUT inválido'
-                });
-                return;
-            }
-
-            clearErrors('rut');
-
-            const { exists } = await checkRutExists(normalizedRut);
-
-            if (exists) {
-                setError('rut', {
-                    type: 'validation',
-                    message: 'Este RUT ya está registrado'
-                });
-            }
-        }, 500);
-
-        return () => clearTimeout(timeoutId);
-    }, [watchedRut]);
+    const CurrentStepComponent = formSteps[activeStep].component;
 
     const handleNext = async () => {
-        const isStepValid = await trigger(formSteps[currentStep].requiredFields);
-        if (isStepValid) {
-            setCurrentStep((prev) => prev + 1);
-        } else {
-            enqueueSnackbar('Complete los campos requeridos', { variant: 'error' });
+        const fields = formSteps[activeStep].requiredFields;
+        const result = await methods.trigger(fields);
+        
+        if (result) {
+            setActiveStep((prevStep) => prevStep + 1);
         }
     };
 
     const handleBack = () => {
-        if (currentStep > 0) {
-            setCurrentStep((prev) => prev - 1);
-        }
+        setActiveStep((prevStep) => prevStep - 1);
     };
 
     const onSubmit = async (data) => {
         setIsSubmitting(true);
-
+        setError(null);
         try {
-            const processedData = {
-                ...data,
-                rut: normalizeRut(data.rut),
-            };
-
-            await createStudent(processedData);
-
-            enqueueSnackbar('Estudiante creado exitosamente', {
-                variant: 'success'
-            });
-
+            await createStudent(data);
+            enqueueSnackbar('Estudiante registrado exitosamente', { variant: 'success' });
             router.push('/students');
-        } catch (error) {
-            enqueueSnackbar('Error al crear estudiante', { variant: 'error' });
+        } catch (err) {
+            setError(err.message || 'Error al registrar estudiante');
+            enqueueSnackbar('Error al registrar estudiante', { variant: 'error' });
         } finally {
             setIsSubmitting(false);
         }
     };
 
-    const CurrentStepComponent = formSteps[currentStep].component;
-
     return (
-        <Paper elevation={3} className="p-8 max-w-4xl mx-auto">
-            <Box className="mb-8">
-                <Stepper activeStep={currentStep} alternativeLabel>
+        <FormProvider {...methods}>
+            <Paper 
+                elevation={3}
+                sx={{
+                    p: 4,
+                    width: '100%',
+                    maxWidth: 1200,
+                    mx: 'auto',
+                    borderRadius: 2,
+                    backgroundColor: 'background.paper'
+                }}
+            >
+                <Typography 
+                    variant="h4" 
+                    component="h1" 
+                    gutterBottom
+                    sx={{ 
+                        mb: 4,
+                        color: 'primary.main',
+                        fontWeight: 600,
+                        textAlign: 'center'
+                    }}
+                >
+                    Registro de Estudiante
+                </Typography>
+
+                <Stepper 
+                    activeStep={activeStep} 
+                    alternativeLabel
+                    sx={{
+                        mb: 4,
+                        '& .MuiStepLabel-label': {
+                            mt: 1,
+                            fontSize: '0.875rem'
+                        },
+                        '& .MuiStepIcon-root': {
+                            width: 35,
+                            height: 35,
+                            '&.Mui-active': {
+                                color: 'primary.main'
+                            },
+                            '&.Mui-completed': {
+                                color: 'success.main'
+                            }
+                        }
+                    }}
+                >
                     {formSteps.map((step, index) => (
-                        <Step key={index}>
-                            <StepLabel>{step.label}</StepLabel>
+                        <Step key={step.label}>
+                            <StepLabel>
+                                <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                                    {step.label}
+                                </Typography>
+                                <Typography 
+                                    variant="caption" 
+                                    sx={{ 
+                                        display: 'block',
+                                        color: 'text.secondary',
+                                        mt: 0.5
+                                    }}
+                                >
+                                    {step.description}
+                                </Typography>
+                            </StepLabel>
                         </Step>
                     ))}
                 </Stepper>
-            </Box>
 
-            <FormProvider {...methods}>
-                <form onSubmit={handleSubmit(onSubmit)} noValidate>
+                <Divider sx={{ my: 3 }} />
+
+                <Box sx={{ mt: 4, minHeight: 400 }}>
                     <AnimatePresence mode="wait">
                         <motion.div
-                            key={currentStep}
-                            initial={{ opacity: 0, x: 50 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            exit={{ opacity: 0, x: -50 }}
-                            transition={{ duration: 0.3 }}
+                            key={activeStep}
+                            initial={{ x: 10, opacity: 0 }}
+                            animate={{ x: 0, opacity: 1 }}
+                            exit={{ x: -10, opacity: 0 }}
+                            transition={{ duration: 0.2 }}
                         >
-                            <Box className="mb-6">
-                                <Typography variant="h5" className="mb-2">
-                                    {formSteps[currentStep].label}
-                                </Typography>
-                                <Typography variant="body2" color="text.secondary">
-                                    {formSteps[currentStep].description}
-                                </Typography>
-                            </Box>
-
                             <CurrentStepComponent />
-
-                            <Divider className="my-6" />
-
-                            <Box className="flex justify-between items-center">
-                                <Button
-                                    onClick={handleBack}
-                                    disabled={currentStep === 0 || isSubmitting}
-                                    startIcon={<ChevronLeft />}
-                                    variant="outlined"
-                                    size="large"
-                                >
-                                    Anterior
-                                </Button>
-
-                                <Button
-                                    type={currentStep === formSteps.length - 1 ? "submit" : "button"}
-                                    onClick={currentStep === formSteps.length - 1 ? undefined : handleNext}
-                                    disabled={isSubmitting}
-                                    variant="contained"
-                                    color="primary"
-                                    size="large"
-                                    endIcon={isSubmitting ? <CircularProgress size={20} /> : <ChevronRight />}
-                                >
-                                    {isSubmitting ? 'Procesando...' : currentStep === formSteps.length - 1 ? 'Guardar' : 'Siguiente'}
-                                </Button>
-                            </Box>
                         </motion.div>
                     </AnimatePresence>
-                </form>
-            </FormProvider>
-        </Paper>
+                </Box>
+
+                {error && (
+                    <Alert 
+                        severity="error" 
+                        sx={{ 
+                            mt: 2,
+                            display: 'flex',
+                            alignItems: 'center'
+                        }}
+                    >
+                        <AlertCircle size={20} style={{ marginRight: 8 }} />
+                        {error}
+                    </Alert>
+                )}
+
+                <Box 
+                    sx={{ 
+                        mt: 4,
+                        pt: 3,
+                        borderTop: 1,
+                        borderColor: 'divider',
+                        display: 'flex',
+                        justifyContent: 'space-between'
+                    }}
+                >
+                    <Button
+                        disabled={activeStep === 0 || isSubmitting}
+                        onClick={handleBack}
+                        startIcon={<ChevronLeft />}
+                        sx={{ 
+                            minWidth: 120,
+                            '&.Mui-disabled': {
+                                opacity: 0
+                            }
+                        }}
+                    >
+                        Anterior
+                    </Button>
+
+                    {activeStep === formSteps.length - 1 ? (
+                        <Button
+                            variant="contained"
+                            color="primary"
+                            onClick={methods.handleSubmit(onSubmit)}
+                            disabled={isSubmitting}
+                            startIcon={isSubmitting ? <CircularProgress size={20} /> : <Save />}
+                            sx={{ 
+                                minWidth: 120,
+                                position: 'relative'
+                            }}
+                        >
+                            {isSubmitting ? 'Guardando...' : 'Guardar'}
+                        </Button>
+                    ) : (
+                        <Button
+                            variant="contained"
+                            onClick={handleNext}
+                            disabled={isSubmitting}
+                            endIcon={<ChevronRight />}
+                            sx={{ minWidth: 120 }}
+                        >
+                            Siguiente
+                        </Button>
+                    )}
+                </Box>
+            </Paper>
+        </FormProvider>
     );
-}
+};
+
+export default StudentRegisterForm;

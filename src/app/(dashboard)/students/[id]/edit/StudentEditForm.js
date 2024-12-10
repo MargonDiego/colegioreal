@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 
-import { useForm, Controller } from 'react-hook-form';
+import { useForm, FormProvider } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { studentValidationSchema } from '@/app/(dashboard)/students/register/validations/studentValidations';
 import {
@@ -27,16 +27,24 @@ import { useSnackbar } from 'notistack';
 import { useRouter } from 'next/navigation';
 
 import dayjs from 'dayjs';
-import {useStudents} from "@/hooks/useStudents";
+import { useStudents } from "@/hooks/useStudents";
+import PersonalInfoForm from '../../register/forms/PersonalInfoForm';
+import AcademicInfoForm from '../../register/forms/AcademicInfoForm';
+import EmergencyContactsForm from '../../register/forms/EmergencyContactsForm';
+import HealthInfoForm from '../../register/forms/HealthInfoForm';
+import ObservationsForm from '../../register/forms/ObservationsForm';
+import GuardianInfoForm from '../../register/forms/GuardianInfoForm';
+import RecordInfoForm from '../../register/forms/RecordInfoForm';
 
 function StudentEditForm({ studentId }) {
     const { enqueueSnackbar } = useSnackbar();
     const router = useRouter();
     const [activeTab, setActiveTab] = useState(0);
-    const { data: studentsData, isLoading, error } = useStudents({
+    const { data: studentsData, isLoading, error, updateStudent } = useStudents({
         filters: { isActive: true },
     });
-    const { control, handleSubmit, reset, formState: { errors } } = useForm({
+
+    const methods = useForm({
         resolver: yupResolver(studentValidationSchema),
         defaultValues: {
             firstName: '',
@@ -52,6 +60,14 @@ function StudentEditForm({ studentId }) {
             matriculaNumber: '',
             enrollmentStatus: 'Regular',
             previousSchool: '',
+            simceResults: {
+                Lenguaje: null,
+                matematica: null,
+                cienciasNaturales: null,
+                historiayGeografia: null
+            },
+            academicRecord: [],
+            attendance: [],
             address: '',
             comuna: '',
             region: '',
@@ -60,13 +76,16 @@ function StudentEditForm({ studentId }) {
                 rut: '',
                 phone: '',
                 email: '',
+                relationship: ''
             },
             apoderadoSuplente: {
                 name: '',
                 rut: '',
                 phone: '',
                 email: '',
+                relationship: ''
             },
+            grupoFamiliar: '',
             contactosEmergencia: [],
             prevision: '',
             grupoSanguineo: '',
@@ -93,29 +112,44 @@ function StudentEditForm({ studentId }) {
         if (studentsData?.data) {
             const student = studentsData.data.find(s => s.id === parseInt(studentId));
             if (student) {
-                // Transform dates to dayjs objects
+                // Transform dates to dayjs objects and arrays
                 const transformedStudent = {
                     ...student,
                     birthDate: student.birthDate ? dayjs(student.birthDate) : null,
-                    fechaIngreso: student.fechaIngreso ? dayjs(student.fechaIngreso) : null
+                    fechaIngreso: student.fechaIngreso ? dayjs(student.fechaIngreso) : null,
+                    condicionesMedicas: Array.isArray(student.condicionesMedicas) ? student.condicionesMedicas : [],
+                    alergias: Array.isArray(student.alergias) ? student.alergias : [],
+                    medicamentos: Array.isArray(student.medicamentos) ? student.medicamentos : [],
+                    necesidadesEducativas: Array.isArray(student.necesidadesEducativas) ? student.necesidadesEducativas : [],
+                    apoyosPIE: Array.isArray(student.apoyosPIE) ? student.apoyosPIE : [],
+                    tipoBeneficioJUNAEB: Array.isArray(student.tipoBeneficioJUNAEB) ? student.tipoBeneficioJUNAEB : [],
+                    becas: Array.isArray(student.becas) ? student.becas : [],
+                    registroConvivencia: Array.isArray(student.registroConvivencia) ? student.registroConvivencia : [],
+                    medidasDisciplinarias: Array.isArray(student.medidasDisciplinarias) ? student.medidasDisciplinarias : [],
+                    reconocimientos: Array.isArray(student.reconocimientos) ? student.reconocimientos : [],
+                    contactosEmergencia: Array.isArray(student.contactosEmergencia) ? student.contactosEmergencia : []
                 };
-                reset(transformedStudent);
+                console.log('Transformed student:', transformedStudent); // Para debug
+                methods.reset(transformedStudent);
             }
         }
-    }, [studentsData, studentId, reset]);
+    }, [studentsData, studentId, methods]);
 
-// Add loading and error handling
     if (isLoading) return <CircularProgress />;
     if (error) return <Alert severity="error">{error.message}</Alert>;
 
     const onSubmit = async (data) => {
         try {
+            // Asegurarse de que la fecha se envía en el formato correcto
+            const formattedData = {
+                ...data,
+                birthDate: data.birthDate ? data.birthDate.toISOString() : null,
+                fechaIngreso: data.fechaIngreso ? data.fechaIngreso.toISOString() : null,
+            };
+            
             await updateStudent({
                 id: studentId,
-                data: {
-                    ...data,
-                    birthDate: data.birthDate ? data.birthDate.toISOString() : null,
-                }
+                data: formattedData
             });
             enqueueSnackbar('Estudiante actualizado correctamente', { variant: 'success' });
             router.push('/students');
@@ -129,498 +163,73 @@ function StudentEditForm({ studentId }) {
     };
 
     return (
-        <Box component="form" onSubmit={handleSubmit(onSubmit)} noValidate>
-            <Tabs value={activeTab} onChange={handleTabChange}>
-                <Tab label="Información Personal" />
-                <Tab label="Información Académica" />
-                <Tab label="Familia y Contactos" />
-                <Tab label="Salud" />
-                <Tab label="Necesidades Educativas" />
-                <Tab label="Información Socioeconómica" />
-                <Tab label="Registros" />
-                <Tab label="Metadatos" />
-            </Tabs>
-
-            {activeTab === 0 && (
-                <Grid container spacing={3}>
-                    <Grid item xs={12} md={6}>
-                        <Controller
-                            name="firstName"
-                            control={control}
-                            render={({ field }) => (
-                                <TextField
-                                    {...field}
-                                    label="Nombre"
-                                    fullWidth
-                                    error={!!errors.firstName}
-                                    helperText={errors.firstName?.message}
-                                />
-                            )}
-                        />
-                    </Grid>
-                    <Grid item xs={12} md={6}>
-                        <Controller
-                            name="lastName"
-                            control={control}
-                            render={({ field }) => (
-                                <TextField
-                                    {...field}
-                                    label="Apellido"
-                                    fullWidth
-                                    error={!!errors.lastName}
-                                    helperText={errors.lastName?.message}
-                                />
-                            )}
-                        />
-                    </Grid>
-                    <Grid item xs={12} md={6}>
-                        <Controller
-                            name="rut"
-                            control={control}
-                            render={({ field }) => (
-                                <TextField
-                                    {...field}
-                                    label="RUT"
-                                    fullWidth
-                                    error={!!errors.rut}
-                                    helperText={errors.rut?.message}
-                                />
-                            )}
-                        />
-                    </Grid>
-                    <Grid item xs={12} md={6}>
-                        <Controller
-                            name="email"
-                            control={control}
-                            render={({ field }) => (
-                                <TextField
-                                    {...field}
-                                    label="Email"
-                                    fullWidth
-                                    error={!!errors.email}
-                                    helperText={errors.email?.message}
-                                />
-                            )}
-                        />
-                    </Grid>
-                    <Grid item xs={12} md={6}>
-                        <Controller
-                            name="birthDate"
-                            control={control}
-                            render={({ field }) => (
-                                <DatePicker
-                                    {...field}
-                                    label="Fecha de Nacimiento"
-                                    slotProps={{
-                                        textField: {
-                                            error: !!errors.birthDate,
-                                            helperText: errors.birthDate?.message,
-                                            fullWidth: true,
-                                        },
-                                    }}
-                                />
-                            )}
-                        />
-                    </Grid>
-                    <Grid item xs={12} md={6}>
-                        <Controller
-                            name="gender"
-                            control={control}
-                            render={({ field }) => (
-                                <FormControl fullWidth error={!!errors.gender}>
-                                    <InputLabel>Género</InputLabel>
-                                    <Select {...field} label="Género">
-                                        <MenuItem value="Masculino">Masculino</MenuItem>
-                                        <MenuItem value="Femenino">Femenino</MenuItem>
-                                        <MenuItem value="No Binario">No Binario</MenuItem>
-                                        <MenuItem value="Otro">Otro</MenuItem>
-                                    </Select>
-                                    <FormHelperText>{errors.gender?.message}</FormHelperText>
-                                </FormControl>
-                            )}
-                        />
-                    </Grid>
-                </Grid>
-
-            )}
-
-            {activeTab === 1 && (
-                <Grid container spacing={3}>
-                    <Grid container spacing={3}>
-                        <Grid item xs={12} md={6}>
-                            <Controller
-                                name="grade"
-                                control={control}
-                                render={({ field }) => (
-                                    <TextField
-                                        {...field}
-                                        label="Grado"
-                                        fullWidth
-                                        error={!!errors.grade}
-                                        helperText={errors.grade?.message}
-                                    />
-                                )}
-                            />
-                        </Grid>
-                        <Grid item xs={12} md={6}>
-                            <Controller
-                                name="academicYear"
-                                control={control}
-                                render={({ field }) => (
-                                    <TextField
-                                        {...field}
-                                        label="Año Académico"
-                                        fullWidth
-                                        error={!!errors.academicYear}
-                                        helperText={errors.academicYear?.message}
-                                    />
-                                )}
-                            />
-                        </Grid>
-                        <Grid item xs={12} md={6}>
-                            <Controller
-                                name="matriculaNumber"
-                                control={control}
-                                render={({ field }) => (
-                                    <TextField
-                                        {...field}
-                                        label="Número de Matrícula"
-                                        fullWidth
-                                        error={!!errors.matriculaNumber}
-                                        helperText={errors.matriculaNumber?.message}
-                                    />
-                                )}
-                            />
-                        </Grid>
-                        <Grid item xs={12} md={6}>
-                            <Controller
-                                name="enrollmentStatus"
-                                control={control}
-                                render={({ field }) => (
-                                    <FormControl fullWidth error={!!errors.enrollmentStatus}>
-                                        <InputLabel>Estado de Matrícula</InputLabel>
-                                        <Select {...field} label="Estado de Matrícula">
-                                            <MenuItem value="Regular">Regular</MenuItem>
-                                            <MenuItem value="Suspendido">Suspendido</MenuItem>
-                                            <MenuItem value="Retirado">Retirado</MenuItem>
-                                            <MenuItem value="Egresado">Egresado</MenuItem>
-                                            <MenuItem value="Trasladado">Trasladado</MenuItem>
-                                        </Select>
-                                        <FormHelperText>{errors.enrollmentStatus?.message}</FormHelperText>
-                                    </FormControl>
-                                )}
-                            />
-                        </Grid>
-                    </Grid>
-
-                </Grid>
-            )}
-            {activeTab === 2 && (
-                <Grid container spacing={3}>
-                    <Grid container spacing={3}>
-                        <Grid item xs={12} md={6}>
-                            <Controller
-                                name="address"
-                                control={control}
-                                render={({ field }) => (
-                                    <TextField
-                                        {...field}
-                                        label="Dirección"
-                                        fullWidth
-                                        error={!!errors.address}
-                                        helperText={errors.address?.message}
-                                    />
-                                )}
-                            />
-                        </Grid>
-                        <Grid item xs={12} md={6}>
-                            <Controller
-                                name="comuna"
-                                control={control}
-                                render={({ field }) => (
-                                    <TextField
-                                        {...field}
-                                        label="Comuna"
-                                        fullWidth
-                                        error={!!errors.comuna}
-                                        helperText={errors.comuna?.message}
-                                    />
-                                )}
-                            />
-                        </Grid>
-                        <Grid item xs={12} md={6}>
-                            <Controller
-                                name="region"
-                                control={control}
-                                render={({ field }) => (
-                                    <FormControl fullWidth error={!!errors.region}>
-                                        <InputLabel>Región</InputLabel>
-                                        <Select {...field} label="Región">
-                                            <MenuItem value="Metropolitana">Metropolitana</MenuItem>
-                                            {/* Agregar otras regiones */}
-                                        </Select>
-                                        <FormHelperText>{errors.region?.message}</FormHelperText>
-                                    </FormControl>
-                                )}
-                            />
-                        </Grid>
-                    </Grid>
-
-                </Grid>
-            )}
-            {activeTab === 3 && (
-                <Grid container spacing={3}>
-                    <Grid container spacing={3}>
-                        <Grid item xs={12} md={6}>
-                            <Controller
-                                name="grupoSanguineo"
-                                control={control}
-                                render={({ field }) => (
-                                    <FormControl fullWidth error={!!errors.grupoSanguineo}>
-                                        <InputLabel>Grupo Sanguíneo</InputLabel>
-                                        <Select {...field} label="Grupo Sanguíneo">
-                                            <MenuItem value="A+">A+</MenuItem>
-                                            <MenuItem value="O+">O+</MenuItem>
-                                            {/* Agregar otros grupos sanguíneos */}
-                                        </Select>
-                                        <FormHelperText>{errors.grupoSanguineo?.message}</FormHelperText>
-                                    </FormControl>
-                                )}
-                            />
-                        </Grid>
-                    </Grid>
-
-                </Grid>
-            )}
-            {activeTab === 4 && (
-                <Grid container spacing={3}>
-                    <Grid container spacing={3}>
-                        <Grid item xs={12}>
-                            <Controller
-                                name="diagnosticoPIE"
-                                control={control}
-                                render={({ field }) => (
-                                    <TextField
-                                        {...field}
-                                        label="Diagnóstico PIE"
-                                        fullWidth
-                                        multiline
-                                        rows={3}
-                                        error={!!errors.diagnosticoPIE}
-                                        helperText={errors.diagnosticoPIE?.message}
-                                    />
-                                )}
-                            />
-                        </Grid>
-                        <Grid item xs={12}>
-                            <Controller
-                                name="necesidadesEducativas"
-                                control={control}
-                                render={({ field }) => (
-                                    <TextField
-                                        {...field}
-                                        label="Necesidades Educativas"
-                                        fullWidth
-                                        multiline
-                                        rows={3}
-                                        error={!!errors.necesidadesEducativas}
-                                        helperText={errors.necesidadesEducativas?.message}
-                                    />
-                                )}
-                            />
-                        </Grid>
-                        <Grid item xs={12}>
-                            <Controller
-                                name="apoyosPIE"
-                                control={control}
-                                render={({ field }) => (
-                                    <TextField
-                                        {...field}
-                                        label="Apoyos PIE"
-                                        fullWidth
-                                        multiline
-                                        rows={3}
-                                        error={!!errors.apoyosPIE}
-                                        helperText={errors.apoyosPIE?.message}
-                                    />
-                                )}
-                            />
-                        </Grid>
-                    </Grid>
-
-                </Grid>
-            )}
-            {activeTab === 5 && (
-                <Grid container spacing={3}>
-                    <Grid container spacing={3}>
-                        <Grid item xs={12} md={6}>
-                            <Controller
-                                name="beneficioJUNAEB"
-                                control={control}
-                                render={({ field }) => (
-                                    <FormControlLabel
-                                        control={<Switch {...field} />}
-                                        label="¿Recibe beneficio JUNAEB?"
-                                    />
-                                )}
-                            />
-                        </Grid>
-                        <Grid item xs={12}>
-                            <Controller
-                                name="tipoBeneficioJUNAEB"
-                                control={control}
-                                render={({ field }) => (
-                                    <TextField
-                                        {...field}
-                                        label="Tipo de Beneficio JUNAEB"
-                                        fullWidth
-                                        multiline
-                                        rows={2}
-                                        error={!!errors.tipoBeneficioJUNAEB}
-                                        helperText={errors.tipoBeneficioJUNAEB?.message}
-                                    />
-                                )}
-                            />
-                        </Grid>
-                        <Grid item xs={12} md={6}>
-                            <Controller
-                                name="prioritario"
-                                control={control}
-                                render={({ field }) => (
-                                    <FormControlLabel
-                                        control={<Switch {...field} />}
-                                        label="¿Es prioritario?"
-                                    />
-                                )}
-                            />
-                        </Grid>
-                        <Grid item xs={12} md={6}>
-                            <Controller
-                                name="preferente"
-                                control={control}
-                                render={({ field }) => (
-                                    <FormControlLabel
-                                        control={<Switch {...field} />}
-                                        label="¿Es preferente?"
-                                    />
-                                )}
-                            />
-                        </Grid>
-                    </Grid>
-
-                </Grid>
-            )}
-            {activeTab === 6 && (
-                <Grid container spacing={3}>
-                    <Grid container spacing={3}>
-                        <Grid item xs={12}>
-                            <Controller
-                                name="registroConvivencia"
-                                control={control}
-                                render={({ field }) => (
-                                    <TextField
-                                        {...field}
-                                        label="Registro de Convivencia"
-                                        fullWidth
-                                        multiline
-                                        rows={4}
-                                        error={!!errors.registroConvivencia}
-                                        helperText={errors.registroConvivencia?.message}
-                                    />
-                                )}
-                            />
-                        </Grid>
-                        <Grid item xs={12}>
-                            <Controller
-                                name="medidasDisciplinarias"
-                                control={control}
-                                render={({ field }) => (
-                                    <TextField
-                                        {...field}
-                                        label="Medidas Disciplinarias"
-                                        fullWidth
-                                        multiline
-                                        rows={3}
-                                        error={!!errors.medidasDisciplinarias}
-                                        helperText={errors.medidasDisciplinarias?.message}
-                                    />
-                                )}
-                            />
-                        </Grid>
-                        <Grid item xs={12}>
-                            <Controller
-                                name="reconocimientos"
-                                control={control}
-                                render={({ field }) => (
-                                    <TextField
-                                        {...field}
-                                        label="Reconocimientos"
-                                        fullWidth
-                                        multiline
-                                        rows={3}
-                                        error={!!errors.reconocimientos}
-                                        helperText={errors.reconocimientos?.message}
-                                    />
-                                )}
-                            />
-                        </Grid>
-                    </Grid>
-
-                </Grid>
-            )}
-            {activeTab === 7 && (
-                <Grid container spacing={3}>
-                    <Grid container spacing={3}>
-                        <Grid item xs={12}>
-                            <Controller
-                                name="observaciones"
-                                control={control}
-                                render={({ field }) => (
-                                    <TextField
-                                        {...field}
-                                        label="Observaciones"
-                                        fullWidth
-                                        multiline
-                                        rows={4}
-                                        error={!!errors.observaciones}
-                                        helperText={errors.observaciones?.message}
-                                    />
-                                )}
-                            />
-                        </Grid>
-                        <Grid item xs={12}>
-                            <Controller
-                                name="isActive"
-                                control={control}
-                                render={({ field }) => (
-                                    <FormControlLabel
-                                        control={<Switch {...field} />}
-                                        label="¿Está activo?"
-                                    />
-                                )}
-                            />
-                        </Grid>
-                    </Grid>
-
-                </Grid>
-            )}
-
-            <Box sx={{ mt: 3, display: 'flex', justifyContent: 'flex-end', gap: 2 }}>
-                <Button
-                    variant="outlined"
-                    onClick={() => router.push('/students')}
+        <FormProvider {...methods}>
+            <Box component="form" onSubmit={methods.handleSubmit(onSubmit)} noValidate>
+                <Tabs 
+                    value={activeTab} 
+                    onChange={handleTabChange}
+                    variant="scrollable"
+                    scrollButtons="auto"
+                    sx={{
+                        mb: 3,
+                        borderBottom: 1,
+                        borderColor: 'divider',
+                        '& .MuiTab-root': {
+                            minWidth: 120,
+                            fontWeight: 500,
+                        }
+                    }}
                 >
-                    Cancelar
-                </Button>
-                <Button
-                    type="submit"
-                    variant="contained"
-                    color="primary"
-                >
-                    Guardar Cambios
-                </Button>
+                    <Tab label="Información Personal" />
+                    <Tab label="Información Académica" />
+                    <Tab label="Apoderados" />
+                    <Tab label="Contactos de Emergencia" />
+                    <Tab label="Salud" />
+                    <Tab label="Historial" />
+                    <Tab label="Observaciones" />
+                </Tabs>
+
+                <Box sx={{ mt: 3 }}>
+                    {activeTab === 0 && <PersonalInfoForm />}
+                    {activeTab === 1 && <AcademicInfoForm />}
+                    {activeTab === 2 && <GuardianInfoForm />}
+                    {activeTab === 3 && <EmergencyContactsForm />}
+                    {activeTab === 4 && <HealthInfoForm />}
+                    {activeTab === 5 && <RecordInfoForm />}
+                    {activeTab === 6 && <ObservationsForm />}
+                </Box>
+
+                <Box sx={{ mt: 4, display: 'flex', justifyContent: 'flex-end', gap: 2 }}>
+                    <Button
+                        variant="outlined"
+                        onClick={() => router.push('/students')}
+                        sx={{ 
+                            borderColor: 'grey.300',
+                            color: 'text.secondary',
+                            '&:hover': {
+                                borderColor: 'grey.400',
+                                backgroundColor: 'grey.50'
+                            }
+                        }}
+                    >
+                        Cancelar
+                    </Button>
+                    <Button 
+                        type="submit"
+                        variant="contained"
+                        sx={{
+                            bgcolor: 'primary.main',
+                            color: 'white',
+                            '&:hover': {
+                                bgcolor: 'primary.dark'
+                            }
+                        }}
+                    >
+                        Guardar Cambios
+                    </Button>
+                </Box>
             </Box>
-        </Box>
+        </FormProvider>
     );
 }
 

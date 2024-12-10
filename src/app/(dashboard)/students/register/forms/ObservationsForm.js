@@ -1,7 +1,21 @@
 import React from 'react';
 import { Controller, useFormContext, useFieldArray } from 'react-hook-form';
-import { Grid, TextField, IconButton, Typography, Button, Divider } from '@mui/material';
-import { Add, Delete } from '@mui/icons-material';
+import { Grid, TextField, IconButton, Typography, Button, Box, Divider, InputAdornment } from '@mui/material';
+import { FileText, Calendar, Award, AlertTriangle, Plus, Trash2 } from 'lucide-react';
+
+const textFieldStyles = {
+    '& .MuiOutlinedInput-root': {
+        '&:hover fieldset': {
+            borderColor: 'primary.main',
+        },
+        '&.Mui-focused fieldset': {
+            borderColor: 'primary.main',
+        },
+    },
+    '& .MuiInputLabel-root.Mui-focused': {
+        color: 'primary.main',
+    },
+};
 
 export default function ObservationsForm() {
     const { control, formState: { errors } } = useFormContext();
@@ -25,8 +39,22 @@ export default function ObservationsForm() {
     });
 
     return (
-        <>
-            <Typography variant="h6" gutterBottom>Observaciones Generales</Typography>
+        <Box>
+            <Typography 
+                variant="h6" 
+                sx={{ 
+                    mb: 3,
+                    color: 'text.primary',
+                    fontWeight: 500,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 1
+                }}
+            >
+                <FileText size={24} />
+                Observaciones Generales
+            </Typography>
+
             <Grid container spacing={3}>
                 <Grid item xs={12}>
                     <Controller
@@ -42,6 +70,14 @@ export default function ObservationsForm() {
                                 rows={4}
                                 error={!!errors?.observaciones}
                                 helperText={errors?.observaciones?.message || "Ingrese observaciones generales sobre el estudiante"}
+                                InputProps={{
+                                    startAdornment: (
+                                        <InputAdornment position="start">
+                                            <FileText size={20} />
+                                        </InputAdornment>
+                                    ),
+                                }}
+                                sx={textFieldStyles}
                             />
                         )}
                     />
@@ -50,12 +86,26 @@ export default function ObservationsForm() {
 
             <Divider sx={{ my: 4 }} />
 
-            <Typography variant="h6" gutterBottom>Reconocimientos</Typography>
+            <Typography 
+                variant="h6" 
+                sx={{ 
+                    mb: 2,
+                    color: 'text.primary',
+                    fontWeight: 500,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 1
+                }}
+            >
+                <Award size={24} />
+                Reconocimientos
+            </Typography>
             <Typography variant="body2" color="text.secondary" gutterBottom>
                 Registre los logros y reconocimientos obtenidos por el estudiante
             </Typography>
+
             {recognitionFields.map((item, index) => (
-                <Grid container spacing={3} key={item.id}>
+                <Grid container spacing={3} key={item.id} sx={{ mb: 2 }}>
                     <Grid item xs={12} md={5}>
                         <Controller
                             name={`reconocimientos.${index}.date`}
@@ -70,6 +120,14 @@ export default function ObservationsForm() {
                                     InputLabelProps={{ shrink: true }}
                                     error={!!errors?.reconocimientos?.[index]?.date}
                                     helperText={errors?.reconocimientos?.[index]?.date?.message}
+                                    InputProps={{
+                                        startAdornment: (
+                                            <InputAdornment position="start">
+                                                <Calendar size={20} />
+                                            </InputAdornment>
+                                        ),
+                                    }}
+                                    sx={textFieldStyles}
                                 />
                             )}
                         />
@@ -87,6 +145,14 @@ export default function ObservationsForm() {
                                     multiline
                                     error={!!errors?.reconocimientos?.[index]?.achievement}
                                     helperText={errors?.reconocimientos?.[index]?.achievement?.message}
+                                    InputProps={{
+                                        startAdornment: (
+                                            <InputAdornment position="start">
+                                                <Award size={20} />
+                                            </InputAdornment>
+                                        ),
+                                    }}
+                                    sx={textFieldStyles}
                                 />
                             )}
                         />
@@ -95,30 +161,55 @@ export default function ObservationsForm() {
                         <IconButton
                             onClick={() => removeRecognition(index)}
                             color="error"
-                            sx={{ mt: 1 }}
+                            sx={{ 
+                                mt: 1,
+                                '&:hover': {
+                                    backgroundColor: 'error.lighter',
+                                }
+                            }}
                         >
-                            <Delete />
+                            <Trash2 size={20} />
                         </IconButton>
                     </Grid>
                 </Grid>
             ))}
             <Button
                 variant="outlined"
-                startIcon={<Add />}
+                startIcon={<Plus size={20} />}
                 onClick={() => appendRecognition({ date: '', achievement: '' })}
-                sx={{ mt: 2 }}
+                sx={{ 
+                    mt: 2,
+                    mb: 4,
+                    '&:hover': {
+                        backgroundColor: 'primary.lighter',
+                    }
+                }}
             >
                 Agregar Reconocimiento
             </Button>
 
             <Divider sx={{ my: 4 }} />
 
-            <Typography variant="h6" gutterBottom>Medidas Disciplinarias</Typography>
+            <Typography 
+                variant="h6" 
+                sx={{ 
+                    mb: 2,
+                    color: 'text.primary',
+                    fontWeight: 500,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 1
+                }}
+            >
+                <AlertTriangle size={24} />
+                Medidas Disciplinarias
+            </Typography>
             <Typography variant="body2" color="text.secondary" gutterBottom>
                 Registre las medidas disciplinarias aplicadas
             </Typography>
+
             {disciplinaryFields.map((item, index) => (
-                <Grid container spacing={3} key={item.id}>
+                <Grid container spacing={3} key={item.id} sx={{ mb: 2 }}>
                     <Grid item xs={12} md={5}>
                         <Controller
                             name={`medidasDisciplinarias.${index}.date`}
@@ -133,23 +224,39 @@ export default function ObservationsForm() {
                                     InputLabelProps={{ shrink: true }}
                                     error={!!errors?.medidasDisciplinarias?.[index]?.date}
                                     helperText={errors?.medidasDisciplinarias?.[index]?.date?.message}
+                                    InputProps={{
+                                        startAdornment: (
+                                            <InputAdornment position="start">
+                                                <Calendar size={20} />
+                                            </InputAdornment>
+                                        ),
+                                    }}
+                                    sx={textFieldStyles}
                                 />
                             )}
                         />
                     </Grid>
                     <Grid item xs={12} md={6}>
                         <Controller
-                            name={`medidasDisciplinarias.${index}.description`}
+                            name={`medidasDisciplinarias.${index}.measure`}
                             control={control}
                             defaultValue=""
                             render={({ field }) => (
                                 <TextField
                                     {...field}
-                                    label="Descripción"
+                                    label="Medida"
                                     fullWidth
                                     multiline
-                                    error={!!errors?.medidasDisciplinarias?.[index]?.description}
-                                    helperText={errors?.medidasDisciplinarias?.[index]?.description?.message}
+                                    error={!!errors?.medidasDisciplinarias?.[index]?.measure}
+                                    helperText={errors?.medidasDisciplinarias?.[index]?.measure?.message}
+                                    InputProps={{
+                                        startAdornment: (
+                                            <InputAdornment position="start">
+                                                <AlertTriangle size={20} />
+                                            </InputAdornment>
+                                        ),
+                                    }}
+                                    sx={textFieldStyles}
                                 />
                             )}
                         />
@@ -158,24 +265,47 @@ export default function ObservationsForm() {
                         <IconButton
                             onClick={() => removeDisciplinary(index)}
                             color="error"
-                            sx={{ mt: 1 }}
+                            sx={{ 
+                                mt: 1,
+                                '&:hover': {
+                                    backgroundColor: 'error.lighter',
+                                }
+                            }}
                         >
-                            <Delete />
+                            <Trash2 size={20} />
                         </IconButton>
                     </Grid>
                 </Grid>
             ))}
             <Button
                 variant="outlined"
-                startIcon={<Add />}
-                onClick={() => appendDisciplinary({ date: '', description: '' })}
-                sx={{ mt: 2 }}
+                startIcon={<Plus size={20} />}
+                onClick={() => appendDisciplinary({ date: '', measure: '' })}
+                sx={{ 
+                    mt: 2,
+                    '&:hover': {
+                        backgroundColor: 'primary.lighter',
+                    }
+                }}
             >
                 Agregar Medida Disciplinaria
             </Button>
             <Divider sx={{ my: 4 }} />
 
-            <Typography variant="h6" gutterBottom>Registro de Convivencia</Typography>
+            <Typography 
+                variant="h6" 
+                sx={{ 
+                    mb: 2,
+                    color: 'text.primary',
+                    fontWeight: 500,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 1
+                }}
+            >
+                <FileText size={24} />
+                Registro de Convivencia
+            </Typography>
             <Grid container spacing={3}>
                 <Grid item xs={12}>
                     <Controller
@@ -191,11 +321,19 @@ export default function ObservationsForm() {
                                 rows={4}
                                 error={!!errors.registroConvivencia}
                                 helperText={errors.registroConvivencia?.message || "Ingrese información del registro de convivencia"}
+                                InputProps={{
+                                    startAdornment: (
+                                        <InputAdornment position="start">
+                                            <FileText size={20} />
+                                        </InputAdornment>
+                                    ),
+                                }}
+                                sx={textFieldStyles}
                             />
                         )}
                     />
                 </Grid>
             </Grid>
-        </>
+        </Box>
     );
 }

@@ -1,4 +1,3 @@
-// src/theme/theme.js
 'use client';
 import { createTheme } from '@mui/material/styles';
 
@@ -11,21 +10,41 @@ const basePalette = {
 
 const lightPalette = {
     ...basePalette,
+    mode: 'light',
     primary: { main: '#4A90E2', light: '#A4C8E1', dark: '#003D6B', contrastText: '#F5F5F5' },
     secondary: { main: '#D5006D', light: '#FF6F91', dark: '#9B003B', contrastText: '#F5F5F5' },
-    background: { default: '#F0F4F8', paper: '#FFFFFF' },
-    text: { primary: '#2A2A2E', secondary: '#4A4A4A' },
+    background: { 
+        default: '#F0F4F8', 
+        paper: '#FFFFFF',
+        alternate: '#F5F7FA' 
+    },
+    text: { 
+        primary: '#2A2A2E', 
+        secondary: '#4A4A4A',
+        disabled: '#9E9E9E' 
+    },
+    divider: 'rgba(0, 0, 0, 0.12)',
 };
 
 const darkPalette = {
     ...basePalette,
+    mode: 'dark',
     primary: { main: '#1E88E5', light: '#6AB7FF', dark: '#0D47A1', contrastText: '#F5F5F5' },
     secondary: { main: '#D81B60', light: '#FF5C8D', dark: '#9B003B', contrastText: '#F5F5F5' },
-    background: { default: '#121212', paper: '#1E1E1E' },
-    text: { primary: '#E0E0E0', secondary: '#B0B0B0' },
+    background: { 
+        default: '#121212', 
+        paper: '#1E1E1E',
+        alternate: '#2A2A2E' 
+    },
+    text: { 
+        primary: '#E0E0E0', 
+        secondary: '#B0B0B0',
+        disabled: '#6E6E6E' 
+    },
+    divider: 'rgba(255, 255, 255, 0.12)',
 };
 
-const commonComponents = {
+const getComponents = (palette) => ({
     MuiButton: {
         styleOverrides: {
             root: {
@@ -41,8 +60,43 @@ const commonComponents = {
             root: {
                 borderRadius: '16px',
                 padding: '20px',
-                // Cambiar a un color sólido para evitar la transparencia
-                backgroundColor: '#FFFFFF',
+                boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                backgroundColor: palette.background.paper,
+            },
+        },
+    },
+    MuiTable: {
+        styleOverrides: {
+            root: {
+                backgroundColor: palette.background.paper,
+                '& .MuiTableCell-root': {
+                    borderBottom: `1px solid ${palette.divider}`,
+                },
+            },
+        },
+    },
+    MuiTableCell: {
+        styleOverrides: {
+            root: {
+                padding: '12px 16px',
+                fontSize: '0.875rem',
+                color: palette.text.primary,
+                '&.MuiTableCell-head': {
+                    backgroundColor: palette.background.alternate,
+                    fontWeight: 600,
+                },
+            },
+        },
+    },
+    MuiTableRow: {
+        styleOverrides: {
+            root: {
+                '&:nth-of-type(odd)': {
+                    backgroundColor: palette.background.alternate,
+                },
+                '&:hover': {
+                    backgroundColor: palette.action?.hover || 'rgba(0, 0, 0, 0.04)',
+                },
             },
         },
     },
@@ -50,50 +104,24 @@ const commonComponents = {
         styleOverrides: {
             root: {
                 '& .MuiOutlinedInput-root': {
-                    borderRadius: '12px',
-                    backgroundColor: '#FFFFFF', // Fondo blanco para los campos de texto
                     '& fieldset': {
-                        borderColor: '#CCCCCC', // Color del borde
+                        borderColor: palette.divider,
                     },
                     '&:hover fieldset': {
-                        borderColor: '#4A90E2', // Color del borde en hover
-                    },
-                    '&.Mui-focused fieldset': {
-                        borderColor: '#4A90E2', // Color del borde cuando está enfocado
+                        borderColor: palette.primary.main,
                     },
                 },
             },
         },
     },
-    MuiMenu: {
-        styleOverrides: {
-            paper: {
-                backgroundColor: '#FFFFFF', // Fondo blanco para el menú desplegable
-                boxShadow: '0px 4px 10px rgba(0, 0, 0, 0.1)', // Sombra para mejor visibilidad
-                borderRadius: '8px', // Borde redondeado para el menú
-            },
-        },
-    },
-    MuiMenuItem: {
-        styleOverrides: {
-            root: {
-                '&:hover': {
-                    backgroundColor: '#F0F4F8', // Fondo en hover
-                },
-            },
-        },
-    },
-};
-
-
-const lightTheme = createTheme({
-    palette: { mode: 'light', ...lightPalette },
-    components: commonComponents,
 });
 
-const darkTheme = createTheme({
-    palette: { mode: 'dark', ...darkPalette },
-    components: commonComponents,
+export const lightTheme = createTheme({
+    palette: lightPalette,
+    components: getComponents(lightPalette),
 });
 
-export { lightTheme, darkTheme };
+export const darkTheme = createTheme({
+    palette: darkPalette,
+    components: getComponents(darkPalette),
+});

@@ -156,19 +156,53 @@ export default function NewInterventionPage() {
 
     return (
         <Box sx={{ p: 3, pt: 12, height: 'calc(100vh - 100px)', overflowY: 'auto' }}>
-            <Paper elevation={1} sx={{ p: 3 }}>
-                <Typography variant="h5" component="h1" gutterBottom>
+            <Paper 
+                elevation={3} 
+                sx={{ 
+                    p: 4,
+                    borderRadius: 2,
+                    background: (theme) => 
+                        theme.palette.mode === 'dark' 
+                            ? 'linear-gradient(180deg, rgba(66,66,66,1) 0%, rgba(33,33,33,1) 100%)' 
+                            : 'linear-gradient(180deg, rgba(255,255,255,1) 0%, rgba(250,250,250,1) 100%)'
+                }}
+            >
+                <Typography 
+                    variant="h4" 
+                    component="h1" 
+                    gutterBottom
+                    sx={{ 
+                        mb: 4,
+                        fontWeight: 'medium',
+                        color: 'primary.main',
+                        borderBottom: '2px solid',
+                        borderColor: 'primary.main',
+                        pb: 1
+                    }}
+                >
                     Nueva Intervención
                 </Typography>
 
                 <form onSubmit={handleSubmit(onSubmit)}>
                     <Grid container spacing={3}>
-                        {/* Información básica */}
+                        {/* Sección: Información Básica */}
+                        <Grid item xs={12}>
+                            <Typography 
+                                variant="h6" 
+                                sx={{ 
+                                    mb: 2,
+                                    color: 'text.secondary',
+                                    fontWeight: 500
+                                }}
+                            >
+                                Información Básica
+                            </Typography>
+                        </Grid>
+
                         <Grid item xs={12} md={6}>
                             <Controller
                                 name="title"
                                 control={control}
-                                rules={{ required: 'El título es requerido' }}
                                 render={({ field }) => (
                                     <TextField
                                         {...field}
@@ -176,6 +210,13 @@ export default function NewInterventionPage() {
                                         fullWidth
                                         error={!!errors.title}
                                         helperText={errors.title?.message}
+                                        sx={{
+                                            '& .MuiOutlinedInput-root': {
+                                                '&:hover fieldset': {
+                                                    borderColor: 'primary.main',
+                                                },
+                                            },
+                                        }}
                                     />
                                 )}
                             />
@@ -185,11 +226,18 @@ export default function NewInterventionPage() {
                             <Controller
                                 name="type"
                                 control={control}
-                                rules={{ required: 'El tipo es requerido' }}
                                 render={({ field }) => (
                                     <FormControl fullWidth error={!!errors.type}>
                                         <InputLabel>Tipo</InputLabel>
-                                        <Select {...field} label="Tipo">
+                                        <Select 
+                                            {...field} 
+                                            label="Tipo"
+                                            sx={{
+                                                '&:hover .MuiOutlinedInput-notchedOutline': {
+                                                    borderColor: 'primary.main',
+                                                },
+                                            }}
+                                        >
                                             {interventionTypes.map((type) => (
                                                 <MenuItem key={type} value={type}>
                                                     {type}
@@ -208,7 +256,6 @@ export default function NewInterventionPage() {
                             <Controller
                                 name="description"
                                 control={control}
-                                rules={{ required: 'La descripción es requerida' }}
                                 render={({ field }) => (
                                     <TextField
                                         {...field}
@@ -218,21 +265,49 @@ export default function NewInterventionPage() {
                                         rows={4}
                                         error={!!errors.description}
                                         helperText={errors.description?.message}
+                                        sx={{
+                                            '& .MuiOutlinedInput-root': {
+                                                '&:hover fieldset': {
+                                                    borderColor: 'primary.main',
+                                                },
+                                            },
+                                        }}
                                     />
                                 )}
                             />
                         </Grid>
 
-                        {/* Estado y Prioridad */}
-                        <Grid item xs={12} md={6}>
+                        {/* Sección: Estado y Fechas */}
+                        <Grid item xs={12}>
+                            <Typography 
+                                variant="h6" 
+                                sx={{ 
+                                    mt: 2,
+                                    mb: 2,
+                                    color: 'text.secondary',
+                                    fontWeight: 500
+                                }}
+                            >
+                                Estado y Fechas
+                            </Typography>
+                        </Grid>
+
+                        <Grid item xs={12} md={4}>
                             <Controller
                                 name="status"
                                 control={control}
-                                rules={{ required: 'El estado es requerido' }}
                                 render={({ field }) => (
                                     <FormControl fullWidth error={!!errors.status}>
                                         <InputLabel>Estado</InputLabel>
-                                        <Select {...field} label="Estado">
+                                        <Select 
+                                            {...field} 
+                                            label="Estado"
+                                            sx={{
+                                                '&:hover .MuiOutlinedInput-notchedOutline': {
+                                                    borderColor: 'primary.main',
+                                                },
+                                            }}
+                                        >
                                             {interventionStatus.map((status) => (
                                                 <MenuItem key={status} value={status}>
                                                     {status}
@@ -247,15 +322,22 @@ export default function NewInterventionPage() {
                             />
                         </Grid>
 
-                        <Grid item xs={12} md={6}>
+                        <Grid item xs={12} md={4}>
                             <Controller
                                 name="priority"
                                 control={control}
-                                rules={{ required: 'La prioridad es requerida' }}
                                 render={({ field }) => (
                                     <FormControl fullWidth error={!!errors.priority}>
                                         <InputLabel>Prioridad</InputLabel>
-                                        <Select {...field} label="Prioridad">
+                                        <Select 
+                                            {...field} 
+                                            label="Prioridad"
+                                            sx={{
+                                                '&:hover .MuiOutlinedInput-notchedOutline': {
+                                                    borderColor: 'primary.main',
+                                                },
+                                            }}
+                                        >
                                             {priorityLevels.map((priority) => (
                                                 <MenuItem key={priority} value={priority}>
                                                     {priority}
@@ -270,23 +352,26 @@ export default function NewInterventionPage() {
                             />
                         </Grid>
 
-                        {/* Fechas */}
-                        <Grid item xs={12} md={6}>
+                        <Grid item xs={12} md={4}>
                             <Controller
                                 name="dateReported"
                                 control={control}
-                                rules={{ required: 'La fecha de reporte es requerida' }}
                                 render={({ field }) => (
                                     <DateTimePicker
                                         {...field}
                                         label="Fecha de Reporte"
-                                        value={field.value ? dayjs(field.value) : null}
-                                        onChange={(newValue) => field.onChange(newValue)}
                                         slotProps={{
                                             textField: {
                                                 fullWidth: true,
                                                 error: !!errors.dateReported,
-                                                helperText: errors.dateReported?.message
+                                                helperText: errors.dateReported?.message,
+                                                sx: {
+                                                    '& .MuiOutlinedInput-root': {
+                                                        '&:hover fieldset': {
+                                                            borderColor: 'primary.main',
+                                                        },
+                                                    },
+                                                }
                                             }
                                         }}
                                     />
@@ -294,61 +379,37 @@ export default function NewInterventionPage() {
                             />
                         </Grid>
 
-                        <Grid item xs={12} md={6}>
-                            <Controller
-                                name="followUpDate"
-                                control={control}
-                                render={({ field }) => (
-                                    <DateTimePicker
-                                        {...field}
-                                        label="Fecha de Seguimiento"
-                                        value={field.value ? dayjs(field.value) : null}
-                                        onChange={(newValue) => field.onChange(newValue)}
-                                        slotProps={{
-                                            textField: {
-                                                fullWidth: true,
-                                                error: !!errors.followUpDate,
-                                                helperText: errors.followUpDate?.message
-                                            }
-                                        }}
-                                    />
-                                )}
-                            />
-                        </Grid>
-
-                        {/* Alcance y Participantes */}
-                        <Grid item xs={12} md={6}>
-                            <Controller
-                                name="interventionScope"
-                                control={control}
-                                rules={{ required: 'El alcance es requerido' }}
-                                render={({ field }) => (
-                                    <FormControl fullWidth error={!!errors.interventionScope}>
-                                        <InputLabel>Alcance</InputLabel>
-                                        <Select {...field} label="Alcance">
-                                            {interventionScopes.map((scope) => (
-                                                <MenuItem key={scope} value={scope}>
-                                                    {scope}
-                                                </MenuItem>
-                                            ))}
-                                        </Select>
-                                        {errors.interventionScope && (
-                                            <FormHelperText>{errors.interventionScope.message}</FormHelperText>
-                                        )}
-                                    </FormControl>
-                                )}
-                            />
+                        {/* Sección: Participantes */}
+                        <Grid item xs={12}>
+                            <Typography 
+                                variant="h6" 
+                                sx={{ 
+                                    mt: 2,
+                                    mb: 2,
+                                    color: 'text.secondary',
+                                    fontWeight: 500
+                                }}
+                            >
+                                Participantes
+                            </Typography>
                         </Grid>
 
                         <Grid item xs={12} md={6}>
                             <Controller
                                 name="studentId"
                                 control={control}
-                                rules={{ required: 'El estudiante es requerido' }}
                                 render={({ field }) => (
                                     <FormControl fullWidth error={!!errors.studentId}>
                                         <InputLabel>Estudiante</InputLabel>
-                                        <Select {...field} label="Estudiante">
+                                        <Select
+                                            {...field}
+                                            label="Estudiante"
+                                            sx={{
+                                                '&:hover .MuiOutlinedInput-notchedOutline': {
+                                                    borderColor: 'primary.main',
+                                                },
+                                            }}
+                                        >
                                             {studentsData?.data?.map((student) => (
                                                 <MenuItem key={student.id} value={student.id}>
                                                     {`${student.firstName} ${student.lastName}`}
@@ -363,25 +424,21 @@ export default function NewInterventionPage() {
                             />
                         </Grid>
 
-                        {/* Campo oculto para el informante */}
-                        <input 
-                            type="hidden" 
-                            {...register('informerId')} 
-                            value={currentUser?.id || ''}
-                        />
-
-                        {/* Responsable */}
                         <Grid item xs={12} md={6}>
                             <Controller
                                 name="responsibleId"
                                 control={control}
-                                rules={{ required: 'El responsable es requerido' }}
                                 render={({ field }) => (
                                     <FormControl fullWidth error={!!errors.responsibleId}>
                                         <InputLabel>Responsable</InputLabel>
                                         <Select
                                             {...field}
                                             label="Responsable"
+                                            sx={{
+                                                '&:hover .MuiOutlinedInput-notchedOutline': {
+                                                    borderColor: 'primary.main',
+                                                },
+                                            }}
                                         >
                                             {usersData?.map((user) => (
                                                 <MenuItem key={user.id} value={user.id}>
@@ -600,16 +657,33 @@ export default function NewInterventionPage() {
 
                         {/* Botones */}
                         <Grid item xs={12}>
-                            <Box sx={{ display: 'flex', gap: 2, justifyContent: 'flex-end' }}>
-                                <Button
-                                    variant="outlined"
-                                    onClick={() => router.back()}
+                            <Box sx={{ 
+                                display: 'flex', 
+                                justifyContent: 'flex-end', 
+                                mt: 4,
+                                gap: 2
+                            }}>
+                                <Button 
+                                    variant="outlined" 
+                                    onClick={() => router.push('/interventions')}
+                                    sx={{
+                                        borderRadius: 2,
+                                        px: 4
+                                    }}
                                 >
                                     Cancelar
                                 </Button>
-                                <Button
+                                <Button 
                                     type="submit"
                                     variant="contained"
+                                    sx={{
+                                        borderRadius: 2,
+                                        px: 4,
+                                        boxShadow: 2,
+                                        '&:hover': {
+                                            boxShadow: 4
+                                        }
+                                    }}
                                 >
                                     Crear Intervención
                                 </Button>
