@@ -71,8 +71,8 @@ export default function StudentsLayout({ children }) {
                         <MuiLink component="span">Lista de Estudiantes</MuiLink>
                     </Link>
                     <Link 
-                        href="/students/new" 
-                        data-active={pathname === '/students/new'}
+                        href="/students/register" 
+                        data-active={pathname === '/students/register'}
                         passHref
                     >
                         <MuiLink component="span">Nuevo Estudiante</MuiLink>

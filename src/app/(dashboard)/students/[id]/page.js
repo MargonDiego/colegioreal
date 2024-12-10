@@ -1,5 +1,6 @@
-'use client'
-import { useEffect, useState } from 'react';
+'use client';
+
+import React, { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import {
     Container, Paper, Typography, Avatar, Box, Chip, Button,
@@ -15,10 +16,7 @@ import {
     Home, HealthAndSafety, Psychology, AttachMoney, LocationCity
 } from '@mui/icons-material';
 import { useStudents } from '@/hooks/useStudents';
-import { useInterventions } from '@/hooks/useInterventions';
-import ProtectedResource from '@/components/auth/ProtectedResource';
-import InterventionsList from '@/components/interventions/InterventionsList';
-import SimpleInterventionsCalendar from '@/components/interventions/SimpleInterventionsCalendar';
+import StudentInterventions from '@/components/students/StudentInterventions';
 
 function TabPanel(props) {
     const { children, value, index, ...other } = props;
@@ -46,7 +44,8 @@ const styles = {
         display: 'flex',
         alignItems: 'center',
         mb: 4,
-        gap: 2
+        gap: 2,
+        justifyContent: 'space-between'
     },
     sideCard: {
         height: '100%',
@@ -139,17 +138,12 @@ const formatJSON = (data) => {
     }
 };
 
-export default function StudentDetailPage() {
+function StudentDetailPage() {
     const router = useRouter();
     const { id } = useParams();
     const [student, setStudent] = useState(null);
-    const [tabValue, setTabValue] = React.useState(0);
+    const [tabValue, setTabValue] = useState(0);
     const { data, isLoading, isError } = useStudents();
-    const { data: interventionsData, isLoading: isLoadingInterventions } = useInterventions({
-        filters: {
-            studentId: parseInt(id)
-        }
-    });
 
     useEffect(() => {
         if (!isLoading && data?.data) {
@@ -182,19 +176,32 @@ export default function StudentDetailPage() {
     return (
         <Container maxWidth="lg" sx={styles.mainContainer}>
             <Box sx={styles.headerSection}>
-                <IconButton 
-                    onClick={() => router.back()}
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                    <IconButton 
+                        onClick={() => router.back()}
+                        sx={{ 
+                            bgcolor: 'background.paper',
+                            boxShadow: 1,
+                            '&:hover': { bgcolor: 'background.default' }
+                        }}
+                    >
+                        <ArrowBack />
+                    </IconButton>
+                    <Typography variant="h4" component="h1" fontWeight="medium">
+                        Detalle del Estudiante
+                    </Typography>
+                </Box>
+                <Button
+                    variant="contained"
+                    startIcon={<Edit />}
+                    onClick={() => router.push(`/students/${id}/edit`)}
                     sx={{ 
-                        bgcolor: 'background.paper',
-                        boxShadow: 1,
-                        '&:hover': { bgcolor: 'background.default' }
+                        boxShadow: 2,
+                        '&:hover': { boxShadow: 3 }
                     }}
                 >
-                    <ArrowBack />
-                </IconButton>
-                <Typography variant="h4" component="h1" fontWeight="medium">
-                    Detalle del Estudiante
-                </Typography>
+                    Editar
+                </Button>
             </Box>
 
             <Grid container spacing={4}>
@@ -331,16 +338,6 @@ export default function StudentDetailPage() {
                             <Tab 
                                 icon={<AttachMoney />} 
                                 label="Socioeconómico"
-                                sx={{ 
-                                    display: 'flex',
-                                    flexDirection: 'row',
-                                    gap: 1,
-                                    alignItems: 'center'
-                                }}
-                            />
-                            <Tab 
-                                icon={<LocalHospital />} 
-                                label="Intervenciones"
                                 sx={{ 
                                     display: 'flex',
                                     flexDirection: 'row',
@@ -890,45 +887,14 @@ export default function StudentDetailPage() {
                                 </Grid>
                             </Grid>
                         </TabPanel>
-
-                        {/* Tab: Intervenciones */}
-                        <TabPanel value={tabValue} index={5}>
-                            <Box>
-                                <Typography variant="h6" gutterBottom color="primary">
-                                    Calendario de Intervenciones
-                                </Typography>
-                                <Box sx={{ mb: 4 }}>
-                                    <SimpleInterventionsCalendar 
-                                        interventions={interventionsData?.data}
-                                    />
-                                </Box>
-                                <Typography variant="h6" gutterBottom color="primary">
-                                    Lista de Intervenciones
-                                </Typography>
-                                <InterventionsList 
-                                    interventions={interventionsData?.data} 
-                                    isLoading={isLoadingInterventions}
-                                />
-                            </Box>
-                        </TabPanel>
                     </Paper>
                 </Grid>
             </Grid>
 
-            {/* Botón flotante de edición */}
-            <Fab
-                color="primary"
-                aria-label="edit"
-                sx={{
-                    position: 'fixed',
-                    bottom: 32,
-                    right: 32,
-                    zIndex: 1000
-                }}
-                onClick={() => router.push(`/students/${id}/edit`)}
-            >
-                <Edit />
-            </Fab>
+            {/* Sección de Intervenciones */}
+            <StudentInterventions studentId={id} />
         </Container>
     );
 }
+
+export default StudentDetailPage;

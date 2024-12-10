@@ -32,10 +32,9 @@ export default function UsersPage() {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const { data, isLoading, deleteUser, isDeleting } = useUsers({
-    pagination: {
-      page: page + 1,
-      limit: rowsPerPage,
-    },
+    filters: {
+      isActive: true
+    }
   });
 
   const handleChangePage = (event, newPage) => {
@@ -48,8 +47,14 @@ export default function UsersPage() {
   };
 
   const handleDeleteUser = async (id) => {
-    if (window.confirm('¿Está seguro de eliminar este usuario?')) {
-      await deleteUser(id);
+    try {
+      if (window.confirm('¿Está seguro de eliminar este usuario?')) {
+        console.log('Intentando eliminar usuario:', id);
+        await deleteUser(id);
+      }
+    } catch (error) {
+      console.error('Error al eliminar usuario:', error);
+      // El mensaje de error se mostrará a través del hook useUsers (enqueueSnackbar)
     }
   };
 
@@ -60,6 +65,9 @@ export default function UsersPage() {
   // Los usuarios vienen directamente en data
   const users = Array.isArray(data) ? data : [];
   const totalUsers = users.length;
+
+  // Aplicar paginación en el cliente
+  const paginatedUsers = users.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
 
   if (isLoading) {
     return (
@@ -90,6 +98,7 @@ export default function UsersPage() {
               variant="contained"
               onClick={() => router.push('/usuarios/crear')}
               startIcon={<AddIcon />}
+              disabled={isDeleting}
             >
               Crear Usuario
             </Button>
@@ -108,53 +117,51 @@ export default function UsersPage() {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {users
-                  .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                  .map((user) => (
-                    <TableRow hover key={user.id}>
-                      <TableCell sx={{ py: 1 }}>
-                        <Typography
-                          variant="body2"
-                          sx={{
-                            cursor: 'pointer',
-                            '&:hover': {
-                              textDecoration: 'underline',
-                            },
-                          }}
-                          onClick={() => router.push(`/usuarios/${user.id}`)}
-                        >
-                          {`${user.firstName} ${user.lastName}`}
-                        </Typography>
-                      </TableCell>
-                      <TableCell sx={{ py: 1 }}>{user.rut}</TableCell>
-                      <TableCell sx={{ py: 1 }}>{user.email}</TableCell>
-                      <TableCell sx={{ py: 1 }}>{user.role}</TableCell>
-                      <TableCell align="right" sx={{ py: 1, whiteSpace: 'nowrap' }}>
-                        {canEdit && (
-                          <Tooltip title="Editar">
-                            <IconButton
-                              size="small"
-                              onClick={() => router.push(`/usuarios/${user.id}/editar`)}
-                              disabled={isDeleting}
-                            >
-                              <EditIcon fontSize="small" />
-                            </IconButton>
-                          </Tooltip>
-                        )}
-                        {canDelete && (
-                          <Tooltip title="Eliminar">
-                            <IconButton
-                              size="small"
-                              onClick={() => handleDeleteUser(user.id)}
-                              disabled={isDeleting}
-                            >
-                              <DeleteIcon fontSize="small" />
-                            </IconButton>
-                          </Tooltip>
-                        )}
-                      </TableCell>
-                    </TableRow>
-                  ))}
+                {paginatedUsers.map((user) => (
+                  <TableRow hover key={user.id}>
+                    <TableCell sx={{ py: 1 }}>
+                      <Typography
+                        variant="body2"
+                        sx={{
+                          cursor: 'pointer',
+                          '&:hover': {
+                            textDecoration: 'underline',
+                          },
+                        }}
+                        onClick={() => router.push(`/usuarios/${user.id}`)}
+                      >
+                        {`${user.firstName} ${user.lastName}`}
+                      </Typography>
+                    </TableCell>
+                    <TableCell sx={{ py: 1 }}>{user.rut}</TableCell>
+                    <TableCell sx={{ py: 1 }}>{user.email}</TableCell>
+                    <TableCell sx={{ py: 1 }}>{user.role}</TableCell>
+                    <TableCell align="right" sx={{ py: 1, whiteSpace: 'nowrap' }}>
+                      {canEdit && (
+                        <Tooltip title="Editar">
+                          <IconButton
+                            size="small"
+                            onClick={() => router.push(`/usuarios/${user.id}/editar`)}
+                            disabled={isDeleting}
+                          >
+                            <EditIcon fontSize="small" />
+                          </IconButton>
+                        </Tooltip>
+                      )}
+                      {canDelete && (
+                        <Tooltip title="Eliminar">
+                          <IconButton
+                            size="small"
+                            onClick={() => handleDeleteUser(user.id)}
+                            disabled={isDeleting}
+                          >
+                            <DeleteIcon fontSize="small" />
+                          </IconButton>
+                        </Tooltip>
+                      )}
+                    </TableCell>
+                  </TableRow>
+                ))}
                 {users.length === 0 && (
                   <TableRow>
                     <TableCell colSpan={5} align="center">
@@ -168,13 +175,11 @@ export default function UsersPage() {
           <TablePagination
             component="div"
             count={totalUsers}
-            onPageChange={handleChangePage}
-            onRowsPerPageChange={handleChangeRowsPerPage}
             page={page}
+            onPageChange={handleChangePage}
             rowsPerPage={rowsPerPage}
-            rowsPerPageOptions={[10, 25, 50]}
-            labelRowsPerPage="Filas por página"
-            sx={{ borderTop: 1, borderColor: 'divider' }}
+            onRowsPerPageChange={handleChangeRowsPerPage}
+            rowsPerPageOptions={[5, 10, 25]}
           />
         </Card>
       </Box>

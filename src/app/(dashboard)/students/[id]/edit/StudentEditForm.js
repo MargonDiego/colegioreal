@@ -40,8 +40,10 @@ function StudentEditForm({ studentId }) {
     const { enqueueSnackbar } = useSnackbar();
     const router = useRouter();
     const [activeTab, setActiveTab] = useState(0);
+    const [isInitialized, setIsInitialized] = useState(false);
+    
     const { data: studentsData, isLoading, error, updateStudent } = useStudents({
-        filters: { isActive: true },
+        studentId: parseInt(studentId)
     });
 
     const methods = useForm({
@@ -108,52 +110,51 @@ function StudentEditForm({ studentId }) {
         },
     });
 
+    // Efecto para cargar los datos iniciales del estudiante
     useEffect(() => {
-        if (studentsData?.data) {
-            const student = studentsData.data.find(s => s.id === parseInt(studentId));
-            if (student) {
-                // Transform dates to dayjs objects and arrays
-                const transformedStudent = {
-                    ...student,
-                    birthDate: student.birthDate ? dayjs(student.birthDate) : null,
-                    fechaIngreso: student.fechaIngreso ? dayjs(student.fechaIngreso) : null,
-                    condicionesMedicas: Array.isArray(student.condicionesMedicas) ? student.condicionesMedicas : [],
-                    alergias: Array.isArray(student.alergias) ? student.alergias : [],
-                    medicamentos: Array.isArray(student.medicamentos) ? student.medicamentos : [],
-                    necesidadesEducativas: Array.isArray(student.necesidadesEducativas) ? student.necesidadesEducativas : [],
-                    apoyosPIE: Array.isArray(student.apoyosPIE) ? student.apoyosPIE : [],
-                    tipoBeneficioJUNAEB: Array.isArray(student.tipoBeneficioJUNAEB) ? student.tipoBeneficioJUNAEB : [],
-                    becas: Array.isArray(student.becas) ? student.becas : [],
-                    registroConvivencia: Array.isArray(student.registroConvivencia) ? student.registroConvivencia : [],
-                    medidasDisciplinarias: Array.isArray(student.medidasDisciplinarias) ? student.medidasDisciplinarias : [],
-                    reconocimientos: Array.isArray(student.reconocimientos) ? student.reconocimientos : [],
-                    contactosEmergencia: Array.isArray(student.contactosEmergencia) ? student.contactosEmergencia : []
-                };
-                console.log('Transformed student:', transformedStudent); // Para debug
-                methods.reset(transformedStudent);
-            }
+        if (studentsData?.data?.[0] && !isInitialized) {
+            const student = studentsData.data[0];
+            const transformedStudent = {
+                ...student,
+                birthDate: student.birthDate ? dayjs(student.birthDate) : null,
+                fechaIngreso: student.fechaIngreso ? dayjs(student.fechaIngreso) : null,
+                condicionesMedicas: Array.isArray(student.condicionesMedicas) ? student.condicionesMedicas : [],
+                alergias: Array.isArray(student.alergias) ? student.alergias : [],
+                medicamentos: Array.isArray(student.medicamentos) ? student.medicamentos : [],
+                necesidadesEducativas: Array.isArray(student.necesidadesEducativas) ? student.necesidadesEducativas : [],
+                apoyosPIE: Array.isArray(student.apoyosPIE) ? student.apoyosPIE : [],
+                tipoBeneficioJUNAEB: Array.isArray(student.tipoBeneficioJUNAEB) ? student.tipoBeneficioJUNAEB : [],
+                becas: Array.isArray(student.becas) ? student.becas : [],
+                registroConvivencia: Array.isArray(student.registroConvivencia) ? student.registroConvivencia : [],
+                medidasDisciplinarias: Array.isArray(student.medidasDisciplinarias) ? student.medidasDisciplinarias : [],
+                reconocimientos: Array.isArray(student.reconocimientos) ? student.reconocimientos : [],
+                contactosEmergencia: Array.isArray(student.contactosEmergencia) ? student.contactosEmergencia : []
+            };
+            methods.reset(transformedStudent);
+            setIsInitialized(true);
         }
-    }, [studentsData, studentId, methods]);
-
-    if (isLoading) return <CircularProgress />;
-    if (error) return <Alert severity="error">{error.message}</Alert>;
+    }, [studentsData, methods, isInitialized]);
 
     const onSubmit = async (data) => {
         try {
-            // Asegurarse de que la fecha se envía en el formato correcto
+            // Formatear las fechas antes de enviar
             const formattedData = {
                 ...data,
-                birthDate: data.birthDate ? data.birthDate.toISOString() : null,
-                fechaIngreso: data.fechaIngreso ? data.fechaIngreso.toISOString() : null,
+                birthDate: data.birthDate ? dayjs(data.birthDate).format('YYYY-MM-DD') : null,
+                fechaIngreso: data.fechaIngreso ? dayjs(data.fechaIngreso).format('YYYY-MM-DD') : null,
             };
+
+            console.log('Enviando datos al servidor:', formattedData);
             
             await updateStudent({
-                id: studentId,
+                id: parseInt(studentId),
                 data: formattedData
             });
+            
             enqueueSnackbar('Estudiante actualizado correctamente', { variant: 'success' });
-            router.push('/students');
+            router.push(`/students/${studentId}`);
         } catch (error) {
+            console.error('Error detallado al actualizar estudiante:', error);
             enqueueSnackbar(error.message || 'Error al actualizar estudiante', { variant: 'error' });
         }
     };
@@ -161,6 +162,9 @@ function StudentEditForm({ studentId }) {
     const handleTabChange = (event, newValue) => {
         setActiveTab(newValue);
     };
+
+    if (isLoading) return <CircularProgress />;
+    if (error) return <Alert severity="error">{error.message}</Alert>;
 
     return (
         <FormProvider {...methods}>
@@ -217,6 +221,7 @@ function StudentEditForm({ studentId }) {
                     <Button 
                         type="submit"
                         variant="contained"
+                        disabled={!isInitialized || methods.formState.isSubmitting}
                         sx={{
                             bgcolor: 'primary.main',
                             color: 'white',

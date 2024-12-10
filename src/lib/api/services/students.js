@@ -2,50 +2,39 @@
 import { axiosPrivate } from '../axios';
 
 export const studentsApi = {
-    getAll: async (params = {}) => {
-        const queryParams = {
-            grade: params.grade,
-            isActive: params.isActive,
-            search: params.search,
-            page: params.page || 1,
-            limit: params.limit || 10,
-            academicYear: params.academicYear,
-            section: params.section,
-            matriculaNumber: params.matriculaNumber,
-            enrollmentStatus: params.enrollmentStatus,
-            previousSchool: params.previousSchool,
-            comuna: params.comuna,
-            region: params.region,
-            apoderadoTitular: params.apoderadoTitular,
-            prevision: params.prevision,
-            grupoSanguineo: params.grupoSanguineo,
-            condicionesMedicas: params.condicionesMedicas,
-            diagnosticoPIE: params.diagnosticoPIE,
-            necesidadesEducativas: params.necesidadesEducativas,
-            beneficioJUNAEB: params.beneficioJUNAEB,
-            tipoBeneficioJUNAEB: params.tipoBeneficioJUNAEB,
-            prioritario: params.prioritario,
-            preferente: params.preferente,
-        };
+    async getAll(params = {}) {
+        try {
+            const queryParams = {
+                ...params,
+                isActive: params.isActive || 'true', // Por defecto, mostrar solo activos
+                limit: params.limit || 1000
+            };
 
-        if (queryParams.matriculaNumber && !/^\d+$/.test(queryParams.matriculaNumber)) {
-            throw new Error('El número de matrícula debe contener solo dígitos.');
+            console.log('Obteniendo estudiantes con parámetros:', queryParams);
+            const response = await axiosPrivate.get('/students', { params: queryParams });
+            console.log('Estudiantes obtenidos:', response.data);
+            return response.data;
+        } catch (error) {
+            console.error('Error al obtener estudiantes:', error);
+            throw new Error('No se pudieron obtener los estudiantes');
         }
-        if (queryParams.academicYear && (queryParams.academicYear < 2000 || queryParams.academicYear > new Date().getFullYear())) {
-            throw new Error('El año académico debe estar entre 2000 y el año actual.');
-        }
-
-        const response = await axiosPrivate.get('/students', { params: queryParams });
-        return response.data;
     },
 
-    getOne: async (id) => {
+    async getOne(id) {
         if (!id) throw new Error('El ID del estudiante es requerido.');
-        const response = await axiosPrivate.get(`/students/${id}`);
-        return response.data;
+        try {
+            const response = await axiosPrivate.get(`/students/${id}`);
+            return response.data;
+        } catch (error) {
+            if (error.response?.status === 404) {
+                throw new Error('Estudiante no encontrado');
+            }
+            console.error('Error al obtener estudiante:', error);
+            throw new Error('No se pudo obtener el estudiante');
+        }
     },
 
-    checkRutExists: async (rut) => {
+    async checkRutExists(rut) {
         if (!rut || typeof rut !== 'string') {
             return { exists: false, message: 'RUT inválido' };
         }
@@ -70,7 +59,7 @@ export const studentsApi = {
         }
     },
 
-    create: async (data) => {
+    async create(data) {
         console.log('studentApi.create called with data:', data);
 
         if (!data.firstName || !data.lastName || !data.rut || !data.matriculaNumber) {
@@ -89,46 +78,60 @@ export const studentsApi = {
             console.log('Server response:', response);
             return response.data;
         } catch (error) {
-            console.error('Error in create student service:', error);
-            console.error('Error details:', {
-                message: error.message,
-                response: error.response?.data,
-                status: error.response?.status,
-                headers: error.response?.headers
-            });
-
-            if (error.response?.status === 401) {
-                console.error('Authentication error - token may be invalid');
-            }
-
-            throw error;
+            console.error('Error al crear estudiante:', error);
+            throw new Error('No se pudo crear el estudiante');
         }
     },
 
-    update: async (id, data) => {
+    async update(id, data) {
         if (!id) throw new Error('El ID del estudiante es requerido para actualizar.');
         if (!data.firstName || !data.lastName) {
             throw new Error('Nombre y apellido son obligatorios para actualizar.');
         }
 
-        // Verificar si se está actualizando el RUT
+        // Verificar si se está actualizando el RUT y es diferente al actual
         if (data.rut) {
-            const rutCheck = await studentsApi.checkRutExists(data.rut);
-            if (rutCheck.exists) {
-                throw new Error('Ya existe otro estudiante con este RUT');
-            }
-            if (!/^\d{1,2}\.\d{3}\.\d{3}-[\dkK]$/.test(data.rut)) {
-                throw new Error('El RUT tiene un formato inválido.');
+            try {
+                const currentStudent = await studentsApi.getOne(id);
+                if (currentStudent.rut !== data.rut) {
+                    const rutCheck = await studentsApi.checkRutExists(data.rut);
+                    if (rutCheck.exists) {
+                        throw new Error('Ya existe otro estudiante con este RUT');
+                    }
+                }
+            } catch (error) {
+                if (error.message !== 'Ya existe otro estudiante con este RUT') {
+                    console.error('Error al verificar RUT:', error);
+                }
+                throw error;
             }
         }
 
-        const response = await axiosPrivate.put(`/students/${id}`, data);
-        return response.data;
+        try {
+            console.log('Enviando datos de actualización:', data);
+            const response = await axiosPrivate.put(`/students/${id}`, data);
+            console.log('Respuesta de actualización:', response.data);
+            return response.data;
+        } catch (error) {
+            console.error('Error detallado al actualizar estudiante:', error.response?.data || error);
+            if (error.response?.status === 404) {
+                throw new Error('Estudiante no encontrado');
+            }
+            throw new Error(error.response?.data?.message || 'No se pudo actualizar el estudiante');
+        }
     },
 
-    delete: async (id) => {
+    async delete(id) {
         if (!id) throw new Error('El ID del estudiante es requerido para eliminar.');
-        const response = await axiosPrivate.delete(`/students/${id}`);
-        return response.data;
+        try {
+            const response = await axiosPrivate.delete(`/students/${id}`);
+            return response.data;
+        } catch (error) {
+            if (error.response?.status === 404) {
+                throw new Error('Estudiante no encontrado');
+            }
+            console.error('Error al eliminar estudiante:', error);
+            throw new Error('No se pudo eliminar el estudiante');
+        }
     },
 };

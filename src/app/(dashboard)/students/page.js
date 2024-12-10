@@ -15,9 +15,17 @@ export default function StudentsListPage() {
     const [error, setError] = useState(null);
 
     // Lógica para obtener estudiantes
-    const { data: studentsData, isLoading, isError } = useStudents({
-        filters: { isActive: true },
-        pagination: { limit: 100 },
+    const { 
+        data: studentsData, 
+        isLoading, 
+        isError, 
+        deleteStudent,
+        isDeleting 
+    } = useStudents({
+        filters: { 
+            isActive: 'true',  // Cambiado a string para coincidir con el backend
+            limit: 1000
+        }
     });
 
     useEffect(() => {
@@ -31,10 +39,21 @@ export default function StudentsListPage() {
         }
     }, [studentsData, isLoading, isError]);
 
-
     // Función para redirigir a la página de detalles del estudiante
     const handleViewStudent = (id) => {
         router.push(`/students/${id}`);
+    };
+
+    // Función para eliminar estudiante
+    const handleDeleteStudent = async (id) => {
+        try {
+            if (window.confirm('¿Está seguro de eliminar este estudiante? Esta acción no se puede deshacer.')) {
+                console.log('Intentando eliminar estudiante:', id);
+                await deleteStudent(id);
+            }
+        } catch (error) {
+            console.error('Error al eliminar estudiante:', error);
+        }
     };
 
     return (
@@ -49,8 +68,13 @@ export default function StudentsListPage() {
                 </Typography>
             )}
 
-            {/* Pasamos la función handleViewStudent como prop a StudentsTable */}
-            <StudentsTable students={students} loading={loading} onViewStudent={handleViewStudent} />
+            <StudentsTable 
+                students={students} 
+                loading={loading || isDeleting} 
+                onViewStudent={handleViewStudent}
+                onDeleteStudent={handleDeleteStudent}
+                isDeleting={isDeleting}
+            />
         </Container>
     );
 }

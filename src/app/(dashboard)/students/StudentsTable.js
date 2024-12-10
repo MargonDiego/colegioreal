@@ -16,9 +16,11 @@ import {
 } from '@mui/material';
 import { Edit, Delete, Visibility } from '@mui/icons-material';
 import ProtectedResource from '@/components/auth/ProtectedResource';
+import { useRouter } from 'next/navigation';
 
-export default function StudentsTable({ students, loading, onViewStudent }) {
+export default function StudentsTable({ students, loading, onViewStudent, onDeleteStudent, isDeleting }) {
     const theme = useTheme();
+    const router = useRouter();
 
     if (loading) {
         return (
@@ -41,15 +43,17 @@ export default function StudentsTable({ students, loading, onViewStudent }) {
     }
 
     const handleViewDetails = (id) => {
-        window.location.href = `/students/${id}`;
+        router.push(`/students/${id}`);
     };
 
     const handleEdit = (id) => {
-        window.location.href = `/students/${id}/edit`;
+        router.push(`/students/${id}/edit`);
     };
 
     const handleDelete = (id) => {
-        console.log(`Eliminar estudiante con ID: ${id}`);
+        if (onDeleteStudent) {
+            onDeleteStudent(id);
+        }
     };
 
     return (
@@ -111,51 +115,39 @@ export default function StudentsTable({ students, loading, onViewStudent }) {
                                     <TableCell sx={{ color: theme.palette.text.secondary }}>{student.email}</TableCell>
                                     <TableCell sx={{ color: theme.palette.text.secondary }}>{student.grade}</TableCell>
                                     <TableCell>
+                                        <ProtectedResource entity="student" operation="READ">
+                                            <Tooltip title="Ver detalles" arrow>
+                                                <IconButton
+                                                    onClick={() => handleViewDetails(student.id)}
+                                                    disabled={isDeleting}
+                                                    size="small"
+                                                    sx={{ color: theme.palette.info.main }}
+                                                >
+                                                    <Visibility fontSize="small" />
+                                                </IconButton>
+                                            </Tooltip>
+                                        </ProtectedResource>
                                         <ProtectedResource entity="student" operation="UPDATE">
                                             <Tooltip title="Editar" arrow>
                                                 <IconButton
-                                                    sx={{
-                                                        color: theme.palette.primary.main,
-                                                        '&:hover': {
-                                                            color: theme.palette.primary.dark,
-                                                            backgroundColor: alpha(theme.palette.primary.main, 0.1),
-                                                        },
-                                                    }}
                                                     onClick={() => handleEdit(student.id)}
+                                                    disabled={isDeleting}
+                                                    size="small"
+                                                    sx={{ color: theme.palette.primary.main }}
                                                 >
-                                                    <Edit />
+                                                    <Edit fontSize="small" />
                                                 </IconButton>
                                             </Tooltip>
                                         </ProtectedResource>
                                         <ProtectedResource entity="student" operation="DELETE">
                                             <Tooltip title="Eliminar" arrow>
                                                 <IconButton
-                                                    sx={{
-                                                        color: theme.palette.error.main,
-                                                        '&:hover': {
-                                                            color: theme.palette.error.dark,
-                                                            backgroundColor: alpha(theme.palette.error.main, 0.1),
-                                                        },
-                                                    }}
                                                     onClick={() => handleDelete(student.id)}
+                                                    disabled={isDeleting}
+                                                    size="small"
+                                                    sx={{ color: theme.palette.error.main }}
                                                 >
-                                                    <Delete />
-                                                </IconButton>
-                                            </Tooltip>
-                                        </ProtectedResource>
-                                        <ProtectedResource entity="student" operation="READ">
-                                            <Tooltip title="Ver Detalles" arrow>
-                                                <IconButton
-                                                    sx={{
-                                                        color: theme.palette.info.main,
-                                                        '&:hover': {
-                                                            color: theme.palette.info.dark,
-                                                            backgroundColor: alpha(theme.palette.info.main, 0.1),
-                                                        },
-                                                    }}
-                                                    onClick={() => onViewStudent(student.id)}
-                                                >
-                                                    <Visibility />
+                                                    <Delete fontSize="small" />
                                                 </IconButton>
                                             </Tooltip>
                                         </ProtectedResource>
